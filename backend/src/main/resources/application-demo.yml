@@ -1,0 +1,15 @@
+# 시연용: --spring.profiles.active=local,demo 로 실행하면 시간 값만 줄어든다.
+# (예: 출발 15분 전 생성 → 2분 전, 3일 납부 기한은 그대로 두고 연체는 DB 수정으로 시연)
+app:
+  pot:
+    min-lead-minutes: 2
+    cancel-deadline-minutes: 1
+    arrival-deadline-minutes: 1
+    auto-cancel-minutes: 3
+    start-reminder-minutes: 1
+  penalty:
+    no-show-suspend-minutes: 2
+  verification:
+    email-code-ttl-minutes: 3
+  fare-claim:
+    deadline-hours: 1

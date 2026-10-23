@@ -1,0 +1,102 @@
+# 공통 설정 (깃에 올라감 — 비밀번호·키 금지). 개인 값은 application-local.yml에.
+spring:
+  profiles:
+    active: local
+  datasource:
+    # serverTimezone + forceConnectionTimeZoneToSession: MySQL 세션 time_zone도 +09:00으로 맞춤 (명세 일시 규칙)
+    # connectionCollation: '탈퇴회원_' CHECK·한글 깨짐 방지 (명세 DB 대응 항목)
+    url: jdbc:mysql://localhost:3306/taxipot?serverTimezone=Asia/Seoul&forceConnectionTimeZoneToSession=true&characterEncoding=UTF-8&connectionCollation=utf8mb4_0900_ai_ci
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    open-in-view: false            # Entity → DTO 변환은 반드시 @Transactional 서비스 안에서
+    hibernate:
+      ddl-auto: validate           # 테이블은 db/schema.sql로만 만든다. create/update 금지 (설계서와 어긋남)
+    properties:
+      hibernate:
+        jdbc.time_zone: Asia/Seoul
+        format_sql: true
+        default_batch_fetch_size: 100
+  sql:
+    init:
+      mode: never                  # schema.sql 자동 실행 안 함 (db/schema.sql은 직접 실행)
+  jackson:
+    time-zone: Asia/Seoul
+    serialization:
+      write-dates-as-timestamps: false
+    # default-property-inclusion: non_null  ← 절대 설정 금지 (명세: null도 키를 내려야 함)
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
+  task:
+    scheduling:
+      pool:
+        size: 4                    # 스케줄러 11개가 한 스레드에서 줄 서지 않도록
+
+server:
+  port: 8080
+  error:
+    include-stacktrace: never
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+  default-produces-media-type: application/json
+
+logging:
+  level:
+    com.taxipot: DEBUG
+
+# ===== 택시팟 설정값 (AppProperties) — 코드에 숫자 직접 쓰지 말 것 =====
+app:
+  upload-dir: ./uploads
+  jwt:
+    secret: ${JWT_SECRET:}         # application-local.yml에서 지정
+    access-token-seconds: 3600
+    refresh-token-seconds: 1209600
+  crypto:
+    aes-key: ${AES_KEY:}           # application-local.yml에서 지정 (팀 공용 개발 키)
+  auth:
+    debug-header-enabled: false    # local에서만 true
+  cors:
+    allowed-origins: []
+  scheduler:
+    enabled: true
+  verification:
+    email-code-ttl-minutes: 1      # 3.9.0
+    resend-interval-seconds: 60    # 3.9.0
+    max-code-attempts: 5
+  pot:
+    hold-buffer-rate: 1.2          # 3.7.0
+    min-lead-minutes: 15
+    max-advance-hours: 24
+    start-reminder-minutes: 3
+    cancel-deadline-minutes: 10
+    arrival-deadline-minutes: 5
+    auto-cancel-minutes: 30
+    fee: 1000
+  arrival:
+    radius-meters: 50
+    late-warning-minutes: 2        # 명세 'N분 전'(서버 설정값) — 팀에서 확정 필요
+  penalty:
+    no-show-suspend-minutes: 15
+  debt:
+    due-days: 3
+  fare-claim:
+    deadline-hours: 24
+  receipt:
+    retention-days: 90
+  withdrawal:
+    min-amount: 1000
+    dummy-fail-amount: 4444        # 이 금액으로 출금하면 더미 송금 실패 (시연용)
+  wallet:
+    max-balance: 1000000
+    charge-min: 1000
+    charge-max: 500000
+    max-fare: 500000
+  rating:
+    period-hours: 24
+  user:
+    purge-days: 14

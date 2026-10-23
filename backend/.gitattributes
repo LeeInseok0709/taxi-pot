@@ -1,0 +1,8 @@
+# 윈도우·맥 혼용 시 줄바꿈(CRLF/LF) 차이로 '전체 파일 변경' 충돌이 나는 것 방지
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+gradlew text eol=lf
+*.jar binary
+*.png binary
+*.jpg binary

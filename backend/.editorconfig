@@ -1,0 +1,20 @@
+# IntelliJ가 자동으로 읽는다. import 정리 방식이 사람마다 달라 생기는 충돌 방지
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+
+[*.{yml,yaml}]
+indent_size = 2
+
+[*.java]
+max_line_length = 120
+# 와일드카드 import(import a.b.*) 금지
+ij_java_class_count_to_use_import_on_demand = 999
+ij_java_names_count_to_use_import_on_demand = 999
+ij_java_imports_layout = *,|,javax.**,java.**,|,$*
