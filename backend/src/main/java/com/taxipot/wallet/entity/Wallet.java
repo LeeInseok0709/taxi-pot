@@ -56,4 +56,22 @@ public class Wallet {
     }
 
     // ===== 상태 변경 메서드 (wallet 담당이 추가) =====
+
+    /**
+     * 예치: 사용 가능 잔액(balance)에서 amount만큼 예치금(held_balance)으로 옮긴다.
+     * 잔액 부족 검사는 WalletManager.hold에서 먼저 한다 (여기서는 옮기기만).
+     */
+    public void hold(int amount) {
+        this.balance -= amount;
+        this.heldBalance += amount;
+    }
+
+    /**
+     * 예치 해제: 예치금(held_balance)에서 amount만큼 사용 가능 잔액(balance)으로 되돌린다.
+     * 환불(refundHold)과 정산의 FARE_REFUND 단계에서 쓴다.
+     */
+    public void releaseHold(int amount) {
+        this.heldBalance -= amount;
+        this.balance += amount;
+    }
 }

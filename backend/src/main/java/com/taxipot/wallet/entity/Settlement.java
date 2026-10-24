@@ -100,4 +100,34 @@ public class Settlement extends BaseCreatedEntity {
     }
 
     // ===== 상태 변경 메서드 (wallet 담당이 추가) =====
+
+    /**
+     * 재참여 예치: 참여 취소(REFUNDED)했던 방에 다시 들어올 때 같은 행을 다시 HELD로 되돌린다.
+     * (pot_id, member_id)가 UNIQUE라 새 행을 만들 수 없기 때문 — 명세 POST /members '취소 이력이 있으면 UPDATE'.
+     * 정산 값과 미수금 값은 모두 초기 상태로 비운다 (DB CHECK chk_settlement_settled_values·debt_state 충족).
+     */
+    public void rehold(int amount) {
+        this.status = SettlementStatus.HELD;
+        this.heldAmount = amount;
+        this.fareShare = null;
+        this.feeAmount = null;
+        this.diffAmount = null;
+        this.settledAt = null;
+        this.uncoveredAmount = 0;
+        this.debtStatus = DebtStatus.NONE;
+        this.debtAmount = 0;
+        this.debtDueAt = null;
+        this.debtPaidAt = null;
+    }
+
+    /**
+     * 전액 환불: 정산 없이 예치금을 모두 돌려준 상태로 표시한다.
+     * (참여 취소·내보내기·노쇼·방 취소·자동 해산 공통)
+     */
+    public void refund() {
+        this.status = SettlementStatus.REFUNDED;
+        this.fareShare = null;
+        this.feeAmount = null;
+        this.diffAmount = null;
+    }
 }
