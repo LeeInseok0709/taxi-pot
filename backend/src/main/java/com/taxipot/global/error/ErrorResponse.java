@@ -1,13 +1,11 @@
 package com.taxipot.global.error;
 
-import com.taxipot.global.util.TimeUtil;
-
 import java.time.OffsetDateTime;
 import java.util.Map;
 
 /**
- * 명세 ErrorResponse: code, message, detail, timestamp 네 키가 '항상' 있어야 한다 (required).
- * detail이 없으면 키를 빼지 않고 "detail": null로 내려간다 → @JsonInclude(NON_NULL) 쓰지 말 것.
+ * 명세 components.schemas.ErrorResponse. code·message·detail·timestamp 4개 키는 항상 내려간다 (detail 은 null 가능).
+ * <p>@JsonInclude(NON_NULL) 을 붙이지 않는다 — 명세상 detail 은 required + nullable.
  */
 public record ErrorResponse(
         String code,
@@ -15,11 +13,7 @@ public record ErrorResponse(
         Map<String, Object> detail,
         OffsetDateTime timestamp
 ) {
-    public static ErrorResponse of(ErrorCode errorCode) {
-        return of(errorCode, errorCode.getMessage(), null);
-    }
-
-    public static ErrorResponse of(ErrorCode errorCode, String message, Map<String, Object> detail) {
-        return new ErrorResponse(errorCode.getCode(), message, detail, TimeUtil.nowOffset());
+    public static ErrorResponse of(ErrorCode code, String message, Map<String, Object> detail, OffsetDateTime now) {
+        return new ErrorResponse(code.name(), message == null ? code.getDefaultMessage() : message, detail, now);
     }
 }

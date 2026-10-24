@@ -1,15 +1,30 @@
-# 시연용: --spring.profiles.active=local,demo 로 실행하면 시간 값만 줄어든다.
-# (예: 출발 15분 전 생성 → 2분 전, 3일 납부 기한은 그대로 두고 연체는 DB 수정으로 시연)
+# 시연용: --spring.profiles.active=demo. 시간 값을 줄여 흐름을 몇 분 안에 보여준다 (명세 '시연 팁')
 app:
+  jwt:
+    secret: ${TAXIPOT_JWT_SECRET:demo-secret-taxipot-0123456789abcdef!!}
+  crypto:
+    aes-key: ${TAXIPOT_CRYPTO_KEY:dGF4aXBvdC1sb2NhbC1kZXYta2V5LTMyLWJ5dGVzISE=}
+  admin:
+    email: admin@taxipot.local
+    password: ${TAXIPOT_ADMIN_PASSWORD:admin1234!}
+  scheduler:
+    enabled: true
+    one-minute-ms: 10000
+    thirty-seconds-ms: 10000
+    ten-minutes-ms: 30000
+    one-hour-ms: 60000
+  verification:
+    email-code-ttl-minutes: 1
+    resend-interval-seconds: 60
   pot:
     min-lead-minutes: 2
-    cancel-deadline-minutes: 1
     arrival-deadline-minutes: 1
-    auto-cancel-minutes: 3
+    cancel-deadline-minutes: 1
+    auto-cancel-after-minutes: 3
     start-reminder-minutes: 1
-  penalty:
+    late-warning-minutes: 1
     no-show-suspend-minutes: 2
-  verification:
-    email-code-ttl-minutes: 3
+  debt:
+    due-days: 1
   fare-claim:
     deadline-hours: 1
