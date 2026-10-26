@@ -9,7 +9,7 @@ import java.time.OffsetDateTime;
 public record WalletResponse(
         Long id,
         Long memberId,
-        // 즉시 사용 가능한 잔액 (방장 정산금 입금으로 1,000,000원을 넘을 수 있음)
+        // 즉시 사용 가능한 잔액 (방장 정산금 입금으로 500,000원을 넘을 수 있음)
         Integer balance,
         // 남은 미수금 합계 (UNPAID·OVERDUE 행의 debt_amount 합, 없으면 0, 3.3.0)
         Integer debtAmount,

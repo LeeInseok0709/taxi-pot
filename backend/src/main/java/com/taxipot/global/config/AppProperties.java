@@ -121,9 +121,9 @@ public record AppProperties(
 
     public record Wallet(
             /** balance + held_balance 상한 */
-            @DefaultValue("1000000") int maxBalance,
-            @DefaultValue("1000") int minCharge,
-            @DefaultValue("500000") int maxCharge
+            @DefaultValue("500000") int maxBalance,
+            @DefaultValue("10000") int minCharge,
+            @DefaultValue("50000") int maxCharge
     ) {
     }
 
