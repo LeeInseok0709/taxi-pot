@@ -1,4 +1,13 @@
-# 시연용: --spring.profiles.active=demo. 시간 값을 줄여 흐름을 몇 분 안에 보여준다 (명세 '시연 팁')
+# 시연용 프로필: --spring.profiles.active=demo
+# 명세 '시연 팁': 시간 값은 모두 application.yml 설정값으로 두고, 시연용 프로필에서 짧게 줄인다.
+#
+# ※ 몇 분으로 줄일지는 명세에 정해져 있지 않다. 팀이 값을 정하면 아래 주석을 풀어 넣는다.
+#    값을 넣지 않으면 application.yml 의 명세 값(15분·10분·5분 등)이 그대로 쓰인다.
+#    에러·알림 문구는 이 설정값을 읽어 만들므로 값을 바꿔도 문구가 함께 바뀐다.
+#
+# 줄일 때 지킬 순서 (명세의 이유: 생성 직후 취소·참여 마감이 바로 오면 방장이 즉시 노쇼 처리될 수 있음)
+#   min-lead-minutes > cancel-deadline-minutes > arrival-deadline-minutes > 0
+#   late-warning-minutes < arrival-deadline-minutes 와 무관하게 '집결 기한 N분 전' 이므로 집결 전에 알림이 가도록 정한다
 app:
   jwt:
     secret: ${TAXIPOT_JWT_SECRET:demo-secret-taxipot-0123456789abcdef!!}
@@ -9,22 +18,23 @@ app:
     password: ${TAXIPOT_ADMIN_PASSWORD:admin1234!}
   scheduler:
     enabled: true
-    one-minute-ms: 10000
-    thirty-seconds-ms: 10000
-    ten-minutes-ms: 30000
-    one-hour-ms: 60000
-  verification:
-    email-code-ttl-minutes: 1
-    resend-interval-seconds: 60
-  pot:
-    min-lead-minutes: 2
-    arrival-deadline-minutes: 1
-    cancel-deadline-minutes: 1
-    auto-cancel-after-minutes: 3
-    start-reminder-minutes: 1
-    late-warning-minutes: 1
-    no-show-suspend-minutes: 2
-  debt:
-    due-days: 1
-  fare-claim:
-    deadline-hours: 1
+    # 스케줄러 주기 (명세: 1분·30초·10분·1시간·일 1회)
+    # one-minute-ms: 60000
+    # thirty-seconds-ms: 30000
+    # ten-minutes-ms: 600000
+    # one-hour-ms: 3600000
+  # pot:
+  #   min-lead-minutes: 15          # 방 생성: 출발 시각 ≥ 현재 + N분
+  #   max-advance-hours: 24         # 방 생성: 출발 시각 ≤ 현재 + N시간
+  #   cancel-deadline-minutes: 10   # 출발 N분 전부터 참여 취소·방 취소 불가
+  #   arrival-deadline-minutes: 5   # 집결 기한 = 참여 마감 = 출발 N분 전
+  #   auto-cancel-after-minutes: 30 # 출발 N분 후에도 탑승 시작이 없으면 자동 취소
+  #   start-reminder-minutes: 3     # 전원 도착 N분 후 방장에게 출발 확인 알림
+  #   late-warning-minutes: 3       # 지각 경고 (명세 'N은 서버 설정값' — 값 미정, 팀 확정 필요)
+  #   no-show-suspend-minutes: 15   # 미도착 정지 시간
+  # debt:
+  #   due-days: 3                   # 미수금 납부 기한
+  # fare-claim:
+  #   deadline-hours: 24            # 실요금 청구 기한
+  # receipt:
+  #   retention-days: 90            # 영수증 보관 기간

@@ -30,11 +30,11 @@ public final class Texts {
         return at < 0 ? "" : e.substring(at + 1);
     }
 
-    /** 응답 마스킹: 123456789012 → 1234****9012 */
+    /** 응답 마스킹 (명세: 앞 3자리·뒤 4자리만 보이게, 예 123-****-9012) */
     public static String maskAccount(String digits) {
-        if (digits == null || digits.length() <= 8) {
+        if (digits == null || digits.length() < 7) {
             return digits;
         }
-        return digits.substring(0, 4) + "*".repeat(digits.length() - 8) + digits.substring(digits.length() - 4);
+        return digits.substring(0, 3) + "-****-" + digits.substring(digits.length() - 4);
     }
 }

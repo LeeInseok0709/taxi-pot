@@ -39,7 +39,7 @@ python tools/smoke_test.py http://localhost:8080 <서버 로그 파일 경로>  
 
 ## 프로필과 설정값
 
-`local`은 개발용이고 Debug 헤더가 켜져 있으며 스케줄러는 꺼져 있습니다. `demo`는 시연용으로 스케줄러를 켜고 15분·30분·3일 같은 시간 값을 몇 분 단위로 줄였습니다(`--spring.profiles.active=demo`). 명세에 '서버 설정값'으로 적힌 숫자는 모두 `application.yml`의 `app.*`에 있으니 코드에 숫자를 직접 쓰지 마세요.
+`local`은 개발용이고 Debug 헤더가 켜져 있으며 스케줄러는 꺼져 있습니다. `demo`는 시연용으로 스케줄러를 켭니다(`--spring.profiles.active=demo`). 명세의 '시연 팁'대로 시간 값을 줄일 수 있게 자리를 만들어 두었지만, 몇 분으로 줄일지는 명세에 없으므로 팀이 정해 `application-demo.yml`의 주석을 풀어 넣습니다. 넣지 않으면 명세 값이 그대로 쓰입니다. 명세에 '서버 설정값'으로 적힌 숫자는 모두 `application.yml`의 `app.*`에 있으니 코드에 숫자를 직접 쓰지 마세요.
 
 운영·시연 서버에서는 환경변수로 비밀값을 넣습니다. `TAXIPOT_JWT_SECRET`(32바이트 이상 문자열), `TAXIPOT_CRYPTO_KEY`(Base64로 인코딩한 32바이트, `openssl rand -base64 32`), `DB_HOST`·`DB_USERNAME`·`DB_PASSWORD`, 메일을 실제로 보낼 때는 `app.mail.enabled=true`와 `MAIL_HOST`·`MAIL_USERNAME`·`MAIL_PASSWORD`가 필요합니다. 암호화 키를 바꾸면 이미 저장된 휴대폰·계좌번호를 읽을 수 없게 되므로, 한번 정한 키는 바꾸지 마세요.
 

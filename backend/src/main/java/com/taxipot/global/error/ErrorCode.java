@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
  * 명세 3.9.0 '공통 에러 코드' 77개 전부 + 서버 전용 3개.
  * <p>새 코드가 필요하면 먼저 명세에 추가(변경 이력 기록)한 뒤 여기에 넣는다. 이름 변경·삭제 금지.
  * <p>메시지는 기본 문구. 값이 들어가는 문구는 {@link Errors} 의 팩토리 메서드를 쓴다.
+ * <p>설정값(분·시간·금액)은 기본 문구에 숫자로 쓰지 않는다 — 시연 프로필에서 값이 바뀌면 문구와 어긋난다.
  */
 @Getter
 public enum ErrorCode {
@@ -30,10 +31,10 @@ public enum ErrorCode {
     UNSUPPORTED_UNIVERSITY(HttpStatus.BAD_REQUEST, "가입할 수 없는 학교입니다."),
     EMAIL_DOMAIN_MISMATCH(HttpStatus.BAD_REQUEST, "선택한 학교의 이메일 주소가 아닙니다."),
     DUMMY_CHARGE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "앱에서는 더미 충전을 할 수 없습니다."),
-    DEPARTURE_TIME_TOO_SOON(HttpStatus.BAD_REQUEST, "출발 시각은 현재로부터 15분 이후여야 합니다."),
+    DEPARTURE_TIME_TOO_SOON(HttpStatus.BAD_REQUEST, "출발 시각이 너무 가깝습니다."),
     RECEIPT_REQUIRED(HttpStatus.BAD_REQUEST, "결제내역 사진을 첨부해 주세요."),
     BALANCE_FORFEIT_NOT_AGREED(HttpStatus.BAD_REQUEST, "남은 잔액 소멸에 동의해야 탈퇴할 수 있습니다."),
-    DEPARTURE_TIME_TOO_FAR(HttpStatus.BAD_REQUEST, "출발 시각은 현재로부터 24시간 이내여야 합니다."),
+    DEPARTURE_TIME_TOO_FAR(HttpStatus.BAD_REQUEST, "출발 시각이 너무 멉니다."),
     ACCOUNT_HOLDER_MISMATCH(HttpStatus.BAD_REQUEST, "예금주가 가입자 이름과 다릅니다."),
 
     // ===== 401 (3) =====
@@ -69,7 +70,7 @@ public enum ErrorCode {
     ALREADY_JOINED(HttpStatus.CONFLICT, "이미 참여한 택시팟입니다."),
     POT_FULL(HttpStatus.CONFLICT, "모집 인원이 모두 찼습니다."),
     INVALID_POT_STATUS(HttpStatus.CONFLICT, "현재 택시팟 상태에서는 할 수 없습니다."),
-    CANCEL_TIME_EXPIRED(HttpStatus.CONFLICT, "출발 10분 전부터는 취소할 수 없습니다."),
+    CANCEL_TIME_EXPIRED(HttpStatus.CONFLICT, "취소 가능 시간이 지났습니다."),
     ALREADY_ARRIVED(HttpStatus.CONFLICT, "이미 도착 확인을 했습니다."),
     ARRIVAL_DEADLINE_PASSED(HttpStatus.CONFLICT, "집결 기한이 지났습니다."),
     MEMBER_ALREADY_ARRIVED(HttpStatus.CONFLICT, "도착한 참여자는 내보낼 수 없습니다."),
@@ -82,7 +83,7 @@ public enum ErrorCode {
     ALREADY_PROCESSED(HttpStatus.CONFLICT, "이미 처리되었습니다."),
     PAYMENT_ALREADY_PROCESSED(HttpStatus.CONFLICT, "이미 처리된 결제입니다."),
     INVALID_PAYMENT_STATUS(HttpStatus.CONFLICT, "현재 결제 상태에서는 할 수 없습니다."),
-    WALLET_LIMIT_EXCEEDED(HttpStatus.CONFLICT, "지갑에는 최대 1,000,000원까지 보관할 수 있습니다."),
+    WALLET_LIMIT_EXCEEDED(HttpStatus.CONFLICT, "지갑 보관 한도를 넘습니다."),
     JOIN_DEADLINE_PASSED(HttpStatus.CONFLICT, "참여 마감 시각이 지났습니다. 출발지 근처에서 입장 요청을 보내 주세요."),
     JOIN_REQUEST_NOT_AVAILABLE(HttpStatus.CONFLICT, "지금은 입장 요청을 보낼 수 없습니다."),
     ALREADY_REQUESTED(HttpStatus.CONFLICT, "이미 입장 요청을 보냈습니다."),

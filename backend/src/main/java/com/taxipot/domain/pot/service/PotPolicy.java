@@ -37,6 +37,19 @@ public class PotPolicy {
         return departureTime.minusMinutes(props.pot().cancelDeadlineMinutes());
     }
 
+    /** CANCEL_TIME_EXPIRED 문구용: Errors.cancelTimeExpired(potPolicy.cancelDeadline(dep), potPolicy.cancelDeadlineMinutes()) */
+    public long cancelDeadlineMinutes() {
+        return props.pot().cancelDeadlineMinutes();
+    }
+
+    public long minLeadMinutes() {
+        return props.pot().minLeadMinutes();
+    }
+
+    public long maxAdvanceHours() {
+        return props.pot().maxAdvanceHours();
+    }
+
     public LocalDateTime minDepartureTime(LocalDateTime now) {
         return now.plusMinutes(props.pot().minLeadMinutes());
     }

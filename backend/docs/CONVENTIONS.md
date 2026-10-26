@@ -171,11 +171,22 @@ public JoinResponse join(Long userId, Long potId, JoinRequest request) {
 
 `.gitattributes`와 `.editorconfig`가 줄바꿈(LF)과 import 정리 방식을 통일하므로, IntelliJ에서 `Settings > Editor > Code Style`의 'Enable EditorConfig support'가 켜져 있는지 확인합니다. Windows에서 처음 받을 때 줄바꿈 경고가 나오면 `git config --global core.autocrlf false`를 한 번 실행합니다. 와일드카드 import(`import java.util.*`)는 쓰지 않습니다. 비밀번호·키를 담은 설정 파일과 `uploads/` 폴더는 커밋하지 않습니다.
 
-## 15. 명세에 반영할 것 (틀을 만들며 정한 값)
+## 15. 명세에 값이 없어 틀에서 정한 것 (팀 확정 필요)
 
-명세에 값이 정해져 있지 않아 틀에서 아래처럼 정했습니다. 명세서 다음 버전에 반영해 두면 앱과 서버가 같은 기준을 갖게 됩니다.
+아래는 명세에 '서버 설정값'·'서버 상수'라고만 되어 있거나 값이 적혀 있지 않아, 틀을 만들며 정한 것입니다. 팀이 확정하면 명세서에 적고 코드·설정을 맞춥니다. 이 목록에 없는 숫자·문구는 모두 명세나 DB 설계서에 근거합니다.
 
-지각 경고 시점(스케줄러 4번의 N분)은 3분(`app.pot.late-warning-minutes`)으로 두었습니다. 은행 목록 22개와 퀵블록 문구 10개는 `BankCatalog`·`QuickBlockCatalog`에 서버 상수로 넣었습니다. 계좌번호는 숫자 10~14자리, 이메일 인증코드는 숫자 6자리입니다. 실시간 메시지 `POT_UPDATED`의 payload는 `{potId}`이고 앱은 받으면 상세를 다시 조회합니다. 서버 전용 에러 코드 3개(405 METHOD_NOT_ALLOWED, 500 INTERNAL_ERROR, 501 NOT_IMPLEMENTED)를 추가했습니다. 운영자 계정은 서버 시작 시 `app.admin.*` 값으로 자동 생성되며, 학교는 UNIVERSITY의 첫 번째 학교로 들어갑니다.
+| 항목 | 지금 값 | 위치 |
+|---|---|---|
+| 지각 경고 시점 (명세: 'N은 서버 설정값') | 집결 기한 3분 전 | `app.pot.late-warning-minutes` |
+| 시연 프로필의 단축 시간 (명세: '시연용 프로필에서 짧게 줄인다') | 정하지 않음 (명세 값 그대로) | `application-demo.yml` 주석 |
+| 은행 목록 (명세: '서버 상수') | 22개, 금융결제원 은행 코드 | `BankCatalog` |
+| 퀵블록 code 값 (명세는 문구만 있음) | `LATE_1`~`LATE_5`, `ARRIVED` | `QuickBlockCatalog` |
+| 이메일 인증코드 자릿수 (DB: VARCHAR(10)) | 숫자 6자리 | `app.verification.email-code-length` |
+| 실시간 `POT_UPDATED` payload | `{potId}` | `PotRealtimePublisher` |
+| 서버 전용 에러 코드 | 405 METHOD_NOT_ALLOWED, 500 INTERNAL_ERROR, 501 NOT_IMPLEMENTED | `ErrorCode` |
+| 운영자 계정 생성 방식 (명세: 운영자 계정 1개) | 서버 시작 시 `app.admin.*` 로 자동 생성 | `AdminAccountInitializer` |
+
+에러·알림 문구에 설정값(분·시간·금액)을 숫자로 직접 쓰지 않습니다. `Errors`의 메서드에 설정값을 넘겨 문구를 만들어야, 시연 프로필에서 값을 바꿔도 문구가 함께 바뀝니다. 예를 들어 취소 마감은 `Errors.cancelTimeExpired(potPolicy.cancelDeadline(departure), potPolicy.cancelDeadlineMinutes())`처럼 씁니다.
 
 ## 16. API 하나를 끝냈다는 기준
 

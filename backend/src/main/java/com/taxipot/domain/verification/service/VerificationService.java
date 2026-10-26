@@ -67,7 +67,8 @@ public class VerificationService {
         LocalDateTime now = timeProvider.now();
         LocalDateTime lastSentAt = v.getEmailCodeExpiresAt().minusMinutes(props.verification().emailCodeTtlMinutes());
         if (now.isBefore(lastSentAt.plusSeconds(props.verification().resendIntervalSeconds()))) {
-            throw new BusinessException(ErrorCode.TOO_MANY_REQUESTS, "인증코드는 60초 후에 다시 받을 수 있습니다.");
+            throw new BusinessException(ErrorCode.TOO_MANY_REQUESTS,
+                    String.format("인증코드는 %d초 후에 다시 받을 수 있습니다.", props.verification().resendIntervalSeconds()));
         }
         String code = newCode();
         v.reissueCode(code, expiresAt(now));

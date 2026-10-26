@@ -53,9 +53,13 @@ public final class Errors {
                 ErrorDetail.of("distanceMeters", distanceMeters, "allowedRadiusMeters", allowedRadiusMeters));
     }
 
-    /** 409 CANCEL_TIME_EXPIRED: cancelDeadline */
-    public static BusinessException cancelTimeExpired(LocalDateTime cancelDeadline) {
-        return new BusinessException(ErrorCode.CANCEL_TIME_EXPIRED, ErrorCode.CANCEL_TIME_EXPIRED.getDefaultMessage(),
+    /**
+     * 409 CANCEL_TIME_EXPIRED: cancelDeadline.
+     * @param cancelDeadlineMinutes 설정값 app.pot.cancel-deadline-minutes (PotPolicy.cancelDeadlineMinutes())
+     */
+    public static BusinessException cancelTimeExpired(LocalDateTime cancelDeadline, long cancelDeadlineMinutes) {
+        return new BusinessException(ErrorCode.CANCEL_TIME_EXPIRED,
+                String.format("출발 %d분 전부터는 취소할 수 없습니다.", cancelDeadlineMinutes),
                 ErrorDetail.of("cancelDeadline", Kst.toOffset(cancelDeadline)));
     }
 
