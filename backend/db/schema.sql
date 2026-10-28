@@ -1,9 +1,9 @@
--- 택시팟 DB 스키마 (DB 테이블 설계서 13차 'DDL(MySQL)' 시트의 CREATE 부분만 발췌)
--- 주의: 시트 아래쪽 '6차→7차' 이후 ALTER문은 넣지 않았다. 빈 DB에 이 파일만 실행하면 13차 스키마가 된다.
--- 실행: mysql -u root -p --default-character-set=utf8mb4 taxipot < db/schema.sql
--- 이 파일은 Spring이 자동 실행하지 않는다 (resources 밖에 둠, spring.sql.init.mode=never).
+-- 택시팟 DB 스키마 — DB 설계서 13차 DDL 시트의 CREATE 문만 추출 (아래쪽 ALTER 문은 기존 DB 이전용이라 제외)
+-- 새 DB 에서 한 번 실행: mysql -u root -p taxipot < db/schema.sql
+-- 이 파일은 서버가 자동 실행하지 않는다 (resources 밖에 둠). 스키마 변경은 설계서 → 이 파일 → Entity 순서로.
 
 SET NAMES utf8mb4;
+
 -- 가입 가능 대학교 테이블 (7차 신규: 학교 고정 목록 + 이메일 도메인)
 CREATE TABLE UNIVERSITY (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '대학교 고유번호',
@@ -16,8 +16,10 @@ CREATE TABLE UNIVERSITY (
   UNIQUE KEY uk_university_email_domain (email_domain),
   CONSTRAINT chk_university_email_domain CHECK (LOCATE('@', email_domain) = 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='가입 가능 대학교 테이블';
+
 -- 가입 가능 학교 목록 (예시 1건: 팀에서 실제 학교·도메인으로 교체)
 INSERT INTO UNIVERSITY (name, email_domain) VALUES ('한국대학교', 'university.ac.kr');
+
 -- 회원 테이블
 CREATE TABLE USERS (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '회원 고유번호',
@@ -62,6 +64,7 @@ CREATE TABLE USERS (
   CONSTRAINT chk_users_nickname_reserved CHECK (status = 'WITHDRAWN' OR LEFT(nickname, 5) <> '탈퇴회원_'),
   CONSTRAINT chk_users_pii_required CHECK (status = 'WITHDRAWN' OR (email IS NOT NULL AND pw_hash IS NOT NULL AND name IS NOT NULL AND phone IS NOT NULL AND gender IS NOT NULL AND student_no IS NOT NULL))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='회원 테이블';
+
 -- 학생 인증 테이블
 CREATE TABLE STUDENT_VERIFICATION (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '인증 고유번호',
@@ -85,6 +88,7 @@ CREATE TABLE STUDENT_VERIFICATION (
   CONSTRAINT chk_student_verification_attempts_rng CHECK (email_code_attempts BETWEEN 0 AND 5),
   CONSTRAINT chk_student_verification_capture_state CHECK ((review_status = 'NOT_SUBMITTED' AND capture_img_path IS NULL) OR (review_status <> 'NOT_SUBMITTED' AND capture_img_path IS NOT NULL))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='학생 인증 테이블';
+
 -- 택시팟 방 테이블
 CREATE TABLE TAXIPOT (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '택시팟 고유번호',
@@ -133,6 +137,7 @@ CREATE TABLE TAXIPOT (
   CONSTRAINT chk_taxipot_claim_reject CHECK (fare_claim_status <> 'REJECTED' OR fare_reject_reason IS NOT NULL),
   CONSTRAINT chk_taxipot_status CHECK (status IN ('RECRUITING', 'CLOSED', 'RUNNING', 'COMPLETED', 'CANCELED'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='택시팟 방 테이블';
+
 -- 택시팟 참여자 테이블
 CREATE TABLE TAXIPOT_MEMBER (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '참여 고유번호',
@@ -153,6 +158,7 @@ CREATE TABLE TAXIPOT_MEMBER (
   CONSTRAINT chk_taxipot_member_preferred_seat CHECK (preferred_seat IN ('FRONT', 'BACK_LEFT', 'BACK_MID', 'BACK_RIGHT', 'NONE')),
   CONSTRAINT chk_taxipot_member_status CHECK (status IN ('JOINED', 'CANCELED', 'BOARDED', 'NO_SHOW', 'KICKED', 'REQUESTED', 'REJECTED'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='택시팟 참여자 테이블';
+
 -- 가상 지갑 테이블
 CREATE TABLE WALLET (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '지갑 고유번호',
@@ -166,6 +172,7 @@ CREATE TABLE WALLET (
   CONSTRAINT chk_wallet_balance_rng CHECK (balance >= 0),
   CONSTRAINT chk_wallet_held_balance_rng CHECK (held_balance >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='가상 지갑 테이블';
+
 -- 충전 결제 테이블
 CREATE TABLE PAYMENT (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '결제 고유번호',
@@ -186,6 +193,7 @@ CREATE TABLE PAYMENT (
   CONSTRAINT chk_payment_amount_rng CHECK (amount > 0),
   CONSTRAINT chk_payment_status CHECK (status IN ('PENDING', 'PAID', 'FAILED', 'REFUNDED'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='충전 결제 테이블';
+
 -- 출금 테이블 (9차 신규: 등록 계좌로 잔액 출금, 시연은 더미 송금)
 CREATE TABLE WITHDRAWAL (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '출금 고유번호',
@@ -209,6 +217,7 @@ CREATE TABLE WITHDRAWAL (
   CONSTRAINT chk_withdrawal_status CHECK (status IN ('REQUESTED', 'COMPLETED', 'FAILED')),
   CONSTRAINT chk_withdrawal_done CHECK ((status = 'REQUESTED' AND completed_at IS NULL) OR (status = 'COMPLETED' AND completed_at IS NOT NULL AND transfer_tid IS NOT NULL) OR (status = 'FAILED' AND completed_at IS NOT NULL))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='출금 테이블';
+
 -- 포인트 원장 테이블
 CREATE TABLE POINT_HISTORY (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '원장 고유번호',
@@ -232,6 +241,7 @@ CREATE TABLE POINT_HISTORY (
   CONSTRAINT chk_point_history_balance_after_rng CHECK (balance_after >= 0),
   CONSTRAINT chk_point_history_withdrawal_link CHECK ((type IN ('WITHDRAW', 'WITHDRAW_REFUND') AND withdrawal_id IS NOT NULL) OR (type NOT IN ('WITHDRAW', 'WITHDRAW_REFUND') AND withdrawal_id IS NULL))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='포인트 원장 테이블';
+
 -- 정산 테이블
 CREATE TABLE SETTLEMENT (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '정산 고유번호',
@@ -264,6 +274,7 @@ CREATE TABLE SETTLEMENT (
   CONSTRAINT chk_settlement_settled_values CHECK ((status = 'SETTLED' AND fare_share IS NOT NULL AND fee_amount IS NOT NULL AND diff_amount IS NOT NULL) OR (status <> 'SETTLED' AND fare_share IS NULL AND fee_amount IS NULL AND diff_amount IS NULL AND uncovered_amount = 0 AND debt_status = 'NONE')),
   CONSTRAINT chk_settlement_debt_state CHECK ((debt_status = 'NONE' AND debt_amount = 0 AND debt_due_at IS NULL) OR (debt_status IN ('UNPAID', 'OVERDUE') AND debt_amount > 0 AND debt_due_at IS NOT NULL) OR (debt_status = 'PAID' AND debt_amount = 0 AND debt_paid_at IS NOT NULL))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='정산 테이블';
+
 -- 동승자 평가 테이블
 CREATE TABLE RATING (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '평가 고유번호',
@@ -290,6 +301,7 @@ CREATE TABLE RATING (
   CONSTRAINT chk_rating_payment_score_rng CHECK (payment_score BETWEEN 1 AND 5),
   CONSTRAINT chk_rating_default_values CHECK (is_default = 0 OR (noshow_score = 3 AND manner_score = 3 AND communication_score = 3 AND payment_score = 3 AND bad_reason IS NULL))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='동승자 평가 테이블';
+
 -- 신고 테이블
 CREATE TABLE REPORT (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '신고 고유번호',
@@ -311,6 +323,7 @@ CREATE TABLE REPORT (
   CONSTRAINT chk_report_type CHECK (type IN ('NO_SHOW', 'ABUSIVE', 'ETC')),
   CONSTRAINT chk_report_status CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='신고 테이블';
+
 -- 채팅 메시지 테이블
 CREATE TABLE CHAT_MESSAGE (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '메시지 고유번호',
@@ -325,6 +338,7 @@ CREATE TABLE CHAT_MESSAGE (
   CONSTRAINT fk_chat_message_sender_id FOREIGN KEY (sender_id) REFERENCES USERS(id),
   CONSTRAINT chk_chat_message_msg_type CHECK (msg_type IN ('TEXT', 'QUICK'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='채팅 메시지 테이블';
+
 -- 알림 테이블
 CREATE TABLE NOTIFICATION (
   id BIGINT NOT NULL AUTO_INCREMENT COMMENT '알림 고유번호',

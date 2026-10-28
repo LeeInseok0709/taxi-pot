@@ -1,4 +1,4 @@
-# 윈도우·맥 혼용 시 줄바꿈(CRLF/LF) 차이로 '전체 파일 변경' 충돌이 나는 것 방지
+# 줄바꿈을 저장소에서는 LF로 통일 (Windows·Mac 혼용 시 '모든 줄이 바뀜' 충돌 방지)
 * text=auto eol=lf
 *.bat text eol=crlf
 *.cmd text eol=crlf
@@ -6,3 +6,4 @@ gradlew text eol=lf
 *.jar binary
 *.png binary
 *.jpg binary
+*.xlsx binary

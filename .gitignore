@@ -22,3 +22,22 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+# IntelliJ
+.idea/
+*.iml
+out/
+
+# Gradle
+.gradle/
+build/
+!backend/gradle/wrapper/gradle-wrapper.jar
+
+# 비밀값
+application-local.yml
+
+# 업로드 파일
+uploads/
+
+# Android
+local.properties
+*.apk

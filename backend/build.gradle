@@ -1,16 +1,17 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.3.5'
-    id 'io.spring.dependency-management' version '1.1.6'
+    id 'org.springframework.boot' version '3.5.15'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'com.taxipot'
-version = '0.0.1-SNAPSHOT'
+version = '0.1.0'
 
+// JDK 17 이상이면 어떤 버전으로 빌드해도 Java 17 호환 결과물을 만든다.
+// (toolchain 으로 17을 고정하면 JDK 21만 설치된 PC에서 'No matching toolchain' 으로 빌드가 멈춤)
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 configurations {
@@ -23,38 +24,43 @@ repositories {
     mavenCentral()
 }
 
-// 라이브러리 추가·버전 변경은 기성만 (각자 추가하면 build.gradle이 매번 충돌)
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
 
     implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
 
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
+
     runtimeOnly 'com.mysql:mysql-connector-j'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-tasks.named('test') {
-    useJUnitPlatform()
-}
-
-tasks.named('bootRun') {
-    jvmArgs = ['-Duser.timezone=Asia/Seoul', '-Dfile.encoding=UTF-8']
-}
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+    options.release = 17
+    // 생성자 파라미터 이름 유지 (@PathVariable·@RequestParam 이름 생략 가능, record 바인딩 안정)
     options.compilerArgs << '-parameters'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    systemProperty 'user.timezone', 'Asia/Seoul'
+}
+
+// 명세 규칙: JVM 시간대 Asia/Seoul (IntelliJ에서 main 실행 시에도 TaxipotApplication이 한 번 더 고정)
+tasks.named('bootRun') {
+    jvmArgs = ['-Duser.timezone=Asia/Seoul', '-Dfile.encoding=UTF-8']
 }

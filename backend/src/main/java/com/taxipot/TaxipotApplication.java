@@ -11,7 +11,7 @@ import java.util.TimeZone;
 public class TaxipotApplication {
 
     public static void main(String[] args) {
-        // IntelliJ 실행 설정에 -Duser.timezone을 빼먹어도 KST로 고정 (팀원 PC마다 시간이 달라지는 문제 방지)
+        // 명세 '일시(KST) 규칙': JVM 시간대 Asia/Seoul. IntelliJ 실행 설정에 -Duser.timezone 을 빠뜨려도 동일하게 동작하도록 고정
         TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
         SpringApplication.run(TaxipotApplication.class, args);
     }

@@ -1,18 +1,20 @@
 package com.taxipot.global.error;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
-import com.fasterxml.jackson.databind.exc.MismatchedInputException;
+import com.taxipot.global.time.TimeProvider;
 import jakarta.validation.ConstraintViolationException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,143 +22,153 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * 모든 실패를 명세 ErrorResponse 형식으로 바꾼다. 팀원은 이 파일을 수정하지 않는다.
- * 주의: Security 필터(JWT) 안에서 난 예외는 여기까지 오지 않는다 → SecurityErrorHandler가 처리.
+ * 모든 예외 → ErrorResponse. 팀원은 여기를 고치지 않고 BusinessException 만 던진다.
+ * <p>모르는 예외는 400 이 아니라 500 INTERNAL_ERROR (서버 버그가 앱 입력 오류처럼 보이지 않게).
  */
 @Slf4j
 @RestControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
+
+    private final TimeProvider timeProvider;
+    private final DbConstraintTranslator dbConstraintTranslator;
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusiness(BusinessException e) {
-        log.info("[{}] {}", e.getErrorCode().getCode(), e.getMessage());
-        return build(e.getErrorCode(), e.getMessage(), e.getDetail());
+        if (e.getErrorCode() == ErrorCode.NOT_IMPLEMENTED) {
+            log.warn(e.getMessage());
+        }
+        return respond(e.getErrorCode(), e.getMessage(), e.getDetail());
     }
 
-    /** @Valid 요청 바디 검증 실패 */
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValid(MethodArgumentNotValidException e) {
-        String fields = e.getBindingResult().getFieldErrors().stream()
-                .map(FieldError::getField).distinct().collect(Collectors.joining(", "));
-        return build(ErrorCode.INVALID_INPUT, "잘못된 입력값입니다: " + fields, null);
+    /** @Valid @RequestBody 검증 실패, @ModelAttribute(multipart) 바인딩·검증 실패 */
+    @ExceptionHandler(BindException.class)
+    public ResponseEntity<ErrorResponse> handleBind(BindException e) {
+        FieldError typeMismatch = e.getFieldErrors().stream()
+                .filter(f -> f.isBindingFailure() && "typeMismatch".equals(f.getCode()))
+                .findFirst().orElse(null);
+        if (typeMismatch != null && isDateTimeField(e, typeMismatch.getField())) {
+            return respond(Errors.invalidDatetimeFormat(typeMismatch.getField(), typeMismatch.getRejectedValue()));
+        }
+        String message = e.getFieldErrors().stream()
+                .map(f -> f.getField() + ": " + f.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+        return respond(ErrorCode.INVALID_INPUT, message.isBlank() ? null : message, null);
     }
 
-    /** @RequestParam·@PathVariable에 붙인 @Min 등 검증 실패 (Spring 6.1+) */
-    @ExceptionHandler({HandlerMethodValidationException.class, ConstraintViolationException.class})
-    public ResponseEntity<ErrorResponse> handleParamValid(Exception e) {
-        return build(ErrorCode.INVALID_INPUT, ErrorCode.INVALID_INPUT.getMessage(), null);
+    /** @RequestParam·@PathVariable 의 @Min 등 검증 실패 (Spring 6.1+) */
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ErrorResponse> handleMethodValidation(HandlerMethodValidationException e) {
+        String message = e.getParameterValidationResults().stream()
+                .flatMap(r -> r.getResolvableErrors().stream()
+                        .map(err -> r.getMethodParameter().getParameterName() + ": " + err.getDefaultMessage()))
+                .collect(Collectors.joining(", "));
+        return respond(ErrorCode.INVALID_INPUT, message.isBlank() ? null : message, null);
     }
 
-    /** JSON 파싱 실패. 일시 필드에 +09:00이 없으면 INVALID_DATETIME_FORMAT(field, value) */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException e) {
+        String message = e.getConstraintViolations().stream()
+                .map(v -> v.getPropertyPath() + ": " + v.getMessage())
+                .collect(Collectors.joining(", "));
+        return respond(ErrorCode.INVALID_INPUT, message, null);
+    }
+
+    /** JSON 파싱 실패. 일시 형식 오류는 INVALID_DATETIME_FORMAT, 나머지는 INVALID_INPUT */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleNotReadable(HttpMessageNotReadableException e) {
-        if (e.getCause() instanceof MismatchedInputException mie
-                && mie.getTargetType() == OffsetDateTime.class) {
-            String field = mie.getPath().isEmpty() ? null : mie.getPath().get(mie.getPath().size() - 1).getFieldName();
-            Object value = (mie instanceof InvalidFormatException ife) ? ife.getValue() : null;
-            return build(ErrorCode.INVALID_DATETIME_FORMAT, ErrorCode.INVALID_DATETIME_FORMAT.getMessage(),
-                    ErrorDetail.of("field", field, "value", value));
+        Throwable cause = e.getCause();
+        if (cause instanceof InvalidFormatException ife && ife.getTargetType() == OffsetDateTime.class) {
+            return respond(Errors.invalidDatetimeFormat(pathOf(ife), ife.getValue()));
         }
-        return build(ErrorCode.INVALID_INPUT, "요청 본문을 읽을 수 없습니다.", null);
+        if (cause instanceof InvalidFormatException ife && ife.getTargetType() != null && ife.getTargetType().isEnum()) {
+            return respond(ErrorCode.INVALID_INPUT, pathOf(ife) + ": 허용되지 않는 값입니다 (" + ife.getValue() + ")", null);
+        }
+        if (cause instanceof JsonMappingException jme && !jme.getPath().isEmpty()) {
+            return respond(ErrorCode.INVALID_INPUT, pathOf(jme) + ": 형식이 올바르지 않습니다.", null);
+        }
+        return respond(ErrorCode.INVALID_INPUT, "요청 본문(JSON) 형식이 올바르지 않습니다.", null);
     }
 
-    /** 쿼리·경로 파라미터 타입 오류 (예: from=2026-10-16T23:00:00 처럼 오프셋 없음, potId=abc) */
+    /** 쿼리·경로 파라미터 타입 오류 (예: from=2026-10-16T23:00:00, status=WRONG) */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
         if (e.getRequiredType() == OffsetDateTime.class) {
-            return build(ErrorCode.INVALID_DATETIME_FORMAT, ErrorCode.INVALID_DATETIME_FORMAT.getMessage(),
-                    ErrorDetail.of("field", e.getName(), "value", e.getValue()));
+            return respond(Errors.invalidDatetimeFormat(e.getName(), e.getValue()));
         }
-        return build(ErrorCode.INVALID_INPUT, "잘못된 파라미터입니다: " + e.getName(), null);
+        return respond(ErrorCode.INVALID_INPUT, e.getName() + ": 허용되지 않는 값입니다 (" + e.getValue() + ")", null);
     }
 
     @ExceptionHandler({MissingServletRequestParameterException.class, MissingServletRequestPartException.class,
             MissingRequestHeaderException.class, HttpMediaTypeNotSupportedException.class})
     public ResponseEntity<ErrorResponse> handleMissing(Exception e) {
-        return build(ErrorCode.INVALID_INPUT, ErrorCode.INVALID_INPUT.getMessage(), null);
+        return respond(ErrorCode.INVALID_INPUT, e.getMessage(), null);
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ErrorResponse> handleUploadSize(MaxUploadSizeExceededException e) {
-        return build(ErrorCode.INVALID_INPUT, "파일은 10MB 이하만 올릴 수 있습니다.", null);
+        return respond(ErrorCode.INVALID_INPUT, "파일은 10MB 이하만 올릴 수 있습니다.", null);
     }
 
-    @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNoResource(NoResourceFoundException e) {
-        return build(ErrorCode.NOT_FOUND, ErrorCode.NOT_FOUND.getMessage(), null);
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<ErrorResponse> handleMultipart(MultipartException e) {
+        return respond(ErrorCode.INVALID_INPUT, "multipart/form-data 요청 형식이 올바르지 않습니다.", null);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrity(DataIntegrityViolationException e) {
+        return respond(dbConstraintTranslator.translate(e));
+    }
+
+    /** 컨트롤러 안에서 발생한 권한 예외 (필터 단계 예외는 RestAccessDeniedHandler 가 처리) */
+    @ExceptionHandler({AccessDeniedException.class, AuthorizationDeniedException.class})
+    public ResponseEntity<ErrorResponse> handleAccessDenied(Exception e) {
+        return respond(ErrorCode.FORBIDDEN, null, null);
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleMethod(HttpRequestMethodNotSupportedException e) {
-        return build(ErrorCode.METHOD_NOT_ALLOWED, ErrorCode.METHOD_NOT_ALLOWED.getMessage(), null);
+        return respond(ErrorCode.METHOD_NOT_ALLOWED, null, null);
     }
 
-    /**
-     * 명세: DB CHECK 위반(MySQL 3819)을 500으로 내보내지 말 것. 정상이라면 서비스 검증이 먼저 막아야 하므로
-     * 여기 걸리면 '서버 검증 누락' 버그다 → error 로그를 꼭 확인하고 서비스에 검증을 추가한다.
-     * - 1062 중복 키(동시에 두 번 누름 등) → 409 ALREADY_PROCESSED
-     * - 3819 CHECK 위반 → 409 INVALID_POT_STATUS (명세 예시)
-     * - 그 외(FK 등) → 400 INVALID_INPUT
-     */
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ErrorResponse> handleIntegrity(DataIntegrityViolationException e) {
-        int vendorCode = findVendorCode(e);
-        log.error("DB 제약 위반 (MySQL {}) — 서비스 검증 누락 확인 필요", vendorCode, e);
-        ErrorCode code = switch (vendorCode) {
-            case 1062 -> ErrorCode.ALREADY_PROCESSED;
-            case 3819 -> ErrorCode.INVALID_POT_STATUS;
-            default -> ErrorCode.INVALID_INPUT;
-        };
-        return build(code, code.getMessage(), null);
+    @ExceptionHandler({NoHandlerFoundException.class, NoResourceFoundException.class})
+    public ResponseEntity<ErrorResponse> handleNoHandler(Exception e) {
+        return respond(ErrorCode.NOT_FOUND, "존재하지 않는 API 입니다.", null);
     }
 
-    /**
-     * 컨트롤러·서비스 안에서 난 Security 예외. 아래 Exception 핸들러가 먼저 잡아 500이 되는 것을 막는다.
-     */
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException e) {
-        return build(ErrorCode.FORBIDDEN, ErrorCode.FORBIDDEN.getMessage(), null);
-    }
-
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ErrorResponse> handleAuthentication(AuthenticationException e) {
-        return build(ErrorCode.UNAUTHORIZED, ErrorCode.UNAUTHORIZED.getMessage(), null);
-    }
-
-    /** 자동 생성된 서비스 메서드 중 아직 구현 안 된 것 (TODO) */
-    @ExceptionHandler(UnsupportedOperationException.class)
-    public ResponseEntity<ErrorResponse> handleNotImplemented(UnsupportedOperationException e) {
-        log.warn("미구현 API: {}", e.getMessage());
-        return build(ErrorCode.INTERNAL_SERVER_ERROR, "아직 구현되지 않은 API입니다: " + e.getMessage(), null);
-    }
-
-    /** 예상 못 한 오류는 400이 아니라 500. (400으로 숨기면 서버 버그를 앱 입력 오류로 착각하게 된다) */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnknown(Exception e) {
-        log.error("Unhandled exception", e);
-        return build(ErrorCode.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_SERVER_ERROR.getMessage(), null);
+        log.error("처리되지 않은 예외", e);
+        return respond(ErrorCode.INTERNAL_ERROR, null, null);
     }
 
-    private ResponseEntity<ErrorResponse> build(ErrorCode code, String message, Map<String, Object> detail) {
-        return ResponseEntity.status(code.getHttpStatus()).body(ErrorResponse.of(code, message, detail));
+    private boolean isDateTimeField(BindException e, String field) {
+        Class<?> type = e.getBindingResult().getFieldType(field);
+        return type == OffsetDateTime.class;
     }
 
-    private int findVendorCode(Throwable t) {
-        while (t != null) {
-            if (t instanceof SQLException sql) {
-                return sql.getErrorCode();
-            }
-            t = t.getCause();
-        }
-        return -1;
+    private static String pathOf(JsonMappingException e) {
+        return e.getPath().stream()
+                .map(r -> r.getFieldName() != null ? r.getFieldName() : "[" + r.getIndex() + "]")
+                .collect(Collectors.joining("."));
+    }
+
+    private ResponseEntity<ErrorResponse> respond(BusinessException e) {
+        return respond(e.getErrorCode(), e.getMessage(), e.getDetail());
+    }
+
+    private ResponseEntity<ErrorResponse> respond(ErrorCode code, String message, Map<String, Object> detail) {
+        return ResponseEntity.status(code.getStatus())
+                .body(ErrorResponse.of(code, message, detail, timeProvider.nowOffset()));
     }
 }

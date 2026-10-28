@@ -1,0 +1,89 @@
+코드값 정의 |  |  | 
+상태·구분 컬럼은 VARCHAR/CHAR + CHECK 제약으로 관리합니다. |  |  | 
+ |  |  | 
+테이블 | 컬럼 | 코드값 | 의미
+USERS | gender | M | 남성
+USERS | gender | F | 여성
+USERS | role | USER | 일반 학생
+USERS | role | ADMIN | 운영자
+USERS | status | ACTIVE | 정상
+USERS | status | SUSPENDED | 이용 정지
+USERS | status | WITHDRAWN | 탈퇴
+STUDENT_VERIFICATION | email_status | PENDING | 대기
+STUDENT_VERIFICATION | email_status | VERIFIED | 인증 완료
+STUDENT_VERIFICATION | review_status | NOT_SUBMITTED | 캡처 미제출 (7차)
+STUDENT_VERIFICATION | review_status | PENDING | 심사 대기
+STUDENT_VERIFICATION | review_status | APPROVED | 승인
+STUDENT_VERIFICATION | review_status | REJECTED | 반려
+TAXIPOT | gender_option | ALL | 제한 없음
+TAXIPOT | gender_option | MALE | 남성만
+TAXIPOT | gender_option | FEMALE | 여성만
+TAXIPOT | status | RECRUITING | 모집중
+TAXIPOT | status | CLOSED | 마감(매칭 확정)
+TAXIPOT | status | RUNNING | 운행중 (실요금 청구·운영자 확인 대기 포함)
+TAXIPOT | status | COMPLETED | 종료 (운영자 청구 승인·정산 완료)
+TAXIPOT | status | CANCELED | 취소
+TAXIPOT | fare_claim_status | NONE | 청구 전 (9차)
+TAXIPOT | fare_claim_status | PENDING | 운영자 확인 대기 (9차)
+TAXIPOT | fare_claim_status | APPROVED | 승인 → 정산 완료 (9차)
+TAXIPOT | fare_claim_status | REJECTED | 반려 — 방장 재청구 가능 (9차)
+TAXIPOT | fare_claim_status | OVERDUE | 탑승 시작 24시간 내 미청구 — 운영자 처리 대상 (9차)
+TAXIPOT_MEMBER | role | HOST | 방장
+TAXIPOT_MEMBER | role | GUEST | 동승자
+TAXIPOT_MEMBER | preferred_seat | FRONT | 조수석
+TAXIPOT_MEMBER | preferred_seat | BACK_LEFT | 뒷좌석 왼쪽
+TAXIPOT_MEMBER | preferred_seat | BACK_MID | 뒷좌석 가운데
+TAXIPOT_MEMBER | preferred_seat | BACK_RIGHT | 뒷좌석 오른쪽
+TAXIPOT_MEMBER | preferred_seat | NONE | 상관없음
+TAXIPOT_MEMBER | status | JOINED | 참여중
+TAXIPOT_MEMBER | status | CANCELED | 참여 취소·입장 요청 철회·자동 취소
+TAXIPOT_MEMBER | status | BOARDED | 탑승 완료
+TAXIPOT_MEMBER | status | NO_SHOW | 노쇼(집결 기한까지 미도착 퇴장 — 자동 퇴장·기한 후 방장 내보내기)
+TAXIPOT_MEMBER | status | KICKED | 퇴장(집결 기한 전 방장 내보내기, 노쇼 아님)
+TAXIPOT_MEMBER | status | REQUESTED | 입장 요청(참여 마감 후, 방장 수락 대기) (7차)
+TAXIPOT_MEMBER | status | REJECTED | 입장 요청 거절 (7차)
+PAYMENT | pg_provider | PORTONE | 포트원
+PAYMENT | pg_provider | DUMMY | 시연용 더미 (6차까지, 7차부터 신규 생성 금지)
+PAYMENT | status | PENDING | 결제 대기
+PAYMENT | status | PAID | 결제 완료
+PAYMENT | status | FAILED | 결제 실패
+PAYMENT | status | REFUNDED | 환불 (11차 충전 환불 폐지 — 과거 행 호환용)
+POINT_HISTORY | type | CHARGE | 충전
+POINT_HISTORY | type | CHARGE_REFUND | 충전 환불(전액) (11차 폐지 — 과거 행 호환용)
+POINT_HISTORY | type | ADMIN_ADJUST | 운영자 잔액 조정(시연용) (11차: 시연 충전 수단)
+POINT_HISTORY | type | FARE_HOLD | 택시비·수수료 선결제 예치
+POINT_HISTORY | type | FARE_REFUND | 예치 해제·환불
+POINT_HISTORY | type | FARE_ADJUST | 실요금 초과분 추가 차감 (6차까지, 7차부터 기록 안 함)
+POINT_HISTORY | type | FARE_PAY | 택시비 분담금 결제 (7차)
+POINT_HISTORY | type | FEE | 서비스 수수료 (정산 시점에 기록)
+POINT_HISTORY | type | HOST_PAYOUT | 방장 정산금 입금(실요금 전액) (7차)
+POINT_HISTORY | type | DEBT_PAY | 미수금 납부 (7차)
+POINT_HISTORY | type | BALANCE_EXPIRE | 탈퇴 시 잔액 소멸 (7차)
+POINT_HISTORY | type | WITHDRAW | 등록 계좌로 출금 (9차)
+POINT_HISTORY | type | WITHDRAW_REFUND | 송금 실패로 출금액 복구 (9차)
+SETTLEMENT | status | HELD | 예치중
+SETTLEMENT | status | SETTLED | 정산 완료
+SETTLEMENT | status | REFUNDED | 전액 환불(취소)
+SETTLEMENT | debt_status | NONE | 미수 없음 (7차)
+SETTLEMENT | debt_status | UNPAID | 미수금 미납(기한 내) (7차)
+SETTLEMENT | debt_status | OVERDUE | 기한 경과 (금액 변동 없음, 10배는 약관 문구만 — 8차)
+SETTLEMENT | debt_status | PAID | 미수금 납부 완료 (7차)
+REPORT | type | NO_SHOW | 노쇼
+REPORT | type | ABUSIVE | 불쾌한 언행
+REPORT | type | ETC | 기타
+REPORT | status | PENDING | 접수
+REPORT | status | APPROVED | 승인(패널티 적용)
+REPORT | status | REJECTED | 반려
+CHAT_MESSAGE | msg_type | TEXT | 일반 텍스트
+CHAT_MESSAGE | msg_type | QUICK | 원터치 퀵블록
+NOTIFICATION | type | POT | 택시팟 참여·취소·마감·자동 해산·입장 요청 처리·출발 확인 알림
+NOTIFICATION | type | PAYMENT | 충전·정산·미수금·출금·실요금 청구 결과
+NOTIFICATION | type | LATE_WARNING | 지각 경고
+NOTIFICATION | type | KICKED | 퇴장·노쇼 처리
+NOTIFICATION | type | RATING_REQUEST | 평가 요청
+NOTIFICATION | type | REPORT_RESULT | 신고 처리 결과
+NOTIFICATION | type | SYSTEM | 공지·시스템
+WITHDRAWAL | transfer_provider | DUMMY | 시연용 가상 송금 (9차)
+WITHDRAWAL | status | REQUESTED | 송금 처리 중 (9차)
+WITHDRAWAL | status | COMPLETED | 송금 완료 (9차)
+WITHDRAWAL | status | FAILED | 송금 실패 — 잔액 복구 (9차)

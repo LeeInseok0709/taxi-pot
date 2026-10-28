@@ -1,22 +1,15 @@
-# Gradle / build
 .gradle/
 build/
+out/
 !gradle/wrapper/gradle-wrapper.jar
-
-# IntelliJ
 .idea/
 *.iml
-*.ipr
 *.iws
-out/
-
-# 비밀값 — 절대 커밋 금지
-src/main/resources/application-local.yml
-.env
-
-# 업로드 파일 (캡처본·영수증 = 개인정보)
-uploads/
-
-# OS
+.vscode/
 .DS_Store
-Thumbs.db
+
+# 로컬 비밀값·업로드 파일은 커밋 금지
+src/main/resources/application-secret.yml
+.env
+uploads/
+logs/
