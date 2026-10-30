@@ -2,7 +2,10 @@ package com.taxipot.domain.wallet.service;
 
 import com.taxipot.domain.wallet.dto.PointHistoryPageResponse;
 import com.taxipot.domain.wallet.dto.WalletResponse;
+import com.taxipot.domain.wallet.entity.Wallet;
+import com.taxipot.domain.wallet.repository.WalletRepository;
 import com.taxipot.global.code.PointType;
+import com.taxipot.global.error.Errors;
 import com.taxipot.global.error.NotImplementedYetException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class WalletService {
 
+    private final WalletRepository walletRepository;
+    private final WalletResponseFactory walletResponseFactory;
+
     /**
      * <b>GET /api/wallet</b> — 내 지갑 잔액 조회
      * <p>
@@ -24,8 +30,11 @@ public class WalletService {
      */
     @Transactional(readOnly = true)
     public WalletResponse getWallet(Long userId) {
-        // TODO(지갑·정산): 위 명세대로 구현
-        throw new NotImplementedYetException("GET /api/wallet");
+        // 내 지갑 (가입할 때 자동으로 만들어지므로 보통은 항상 있다)
+        Wallet wallet = walletRepository.findByMemberId(userId)
+                .orElseThrow(() -> Errors.notFound("지갑"));
+        // 잔액·예치금 + 남은 미수금 합계(debtAmount)를 함께 내려준다 (운영자 잔액 조정과 같은 응답)
+        return walletResponseFactory.of(wallet);
     }
 
     /**
