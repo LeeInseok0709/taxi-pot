@@ -1,13 +1,21 @@
 package com.taxipot.domain.wallet.service;
 
+import com.taxipot.domain.pot.entity.Taxipot;
+import com.taxipot.domain.pot.repository.TaxipotRepository;
+import com.taxipot.domain.settlement.entity.Settlement;
+import com.taxipot.domain.settlement.repository.SettlementRepository;
 import com.taxipot.domain.wallet.dto.DebtPayResponse;
 import com.taxipot.domain.wallet.dto.DebtResponse;
+import com.taxipot.global.code.DebtStatus;
 import com.taxipot.global.error.NotImplementedYetException;
+import com.taxipot.global.time.Kst;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 담당: 지갑·정산
@@ -18,6 +26,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DebtService {
 
+    private static final List<DebtStatus> DEBT_STATUSES = List.of(DebtStatus.UNPAID, DebtStatus.OVERDUE);
+
+    private final SettlementRepository settlementRepository;
+    private final TaxipotRepository taxipotRepository;
+
     /**
      * <b>GET /api/wallet/debts</b> — 내 미수금 목록 조회 (3.3.0)
      * <p>
@@ -25,8 +38,30 @@ public class DebtService {
      */
     @Transactional(readOnly = true)
     public List<DebtResponse> getMyDebts(Long userId) {
-        // TODO(지갑·정산): 위 명세대로 구현
-        throw new NotImplementedYetException("GET /api/wallet/debts");
+        // 1. 내 미수금 (UNPAID·OVERDUE), 납부 기한 빠른 순
+        List<Settlement> debts = settlementRepository
+                .findAllByMemberIdAndDebtStatusInOrderByDebtDueAtAscIdAsc(userId, DEBT_STATUSES);
+        if (debts.isEmpty()) {
+            return List.of();
+        }
+
+        // 2. 화면에 보여줄 방 제목을 한 번에 가져오기 (미수금마다 따로 조회하지 않도록)
+        List<Long> potIds = debts.stream().map(Settlement::getPotId).distinct().toList();
+        Map<Long, String> potTitles = taxipotRepository.findAllById(potIds).stream()
+                .collect(Collectors.toMap(Taxipot::getId, Taxipot::getTitle));
+
+        // 3. 응답으로 바꾸기 (시각은 KST +09:00)
+        return debts.stream()
+                .map(s -> new DebtResponse(
+                        s.getId(),
+                        s.getPotId(),
+                        potTitles.get(s.getPotId()),
+                        Kst.toOffset(s.getSettledAt()),
+                        s.getUncoveredAmount(),
+                        s.getDebtStatus(),
+                        s.getDebtAmount(),
+                        Kst.toOffset(s.getDebtDueAt())))
+                .toList();
     }
 
     /**
