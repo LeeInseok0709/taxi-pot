@@ -23,7 +23,7 @@ public record SignupRequest(
         // GET /api/universities 응답의 name. 이메일 도메인이 이 학교 emailDomain과 일치해야 함
         @NotBlank @Size(max = 50) String university,
         @NotBlank @Size(max = 20) String studentNo,
-        // 출금 은행 코드 (`GET /api/banks`, 3.5.0)
+        // 출금 은행 코드 (`GET /api/banks`, 3.5.0). 004·011·088·020·090·092 중 하나
         @NotBlank @Size(max = 10) String bankCode,
         // 본인 명의 출금 계좌번호 (하이픈 허용, 서버가 숫자만 남겨 암호화 저장, 3.5.0)
         @NotBlank @Size(max = 20) String accountNumber,

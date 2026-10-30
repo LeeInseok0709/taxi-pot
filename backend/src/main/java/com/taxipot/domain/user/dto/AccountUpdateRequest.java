@@ -11,6 +11,7 @@ import jakarta.validation.constraints.Size;
 public record AccountUpdateRequest(
         // 현재 비밀번호
         @NotBlank String password,
+        // `GET /api/banks` 목록 코드. 004·011·088·020·090·092 중 하나
         @NotBlank @Size(max = 10) String bankCode,
         @NotBlank @Size(max = 20) String accountNumber,
         @NotBlank @Size(max = 50) String accountHolder

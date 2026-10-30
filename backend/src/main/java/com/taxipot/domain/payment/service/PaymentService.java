@@ -22,7 +22,7 @@ public class PaymentService {
     /**
      * <b>POST /api/payments</b> — 포인트 충전 요청
      * <p>
-     * 서버가 order_id를 발급하고 PAYMENT 행을 생성한다. 1회 충전 1,000 ~ 500,000원, 충전 후 잔액(balance + held_balance)이 1,000,000원을 넘으면 409.
+     * 서버가 order_id를 발급하고 PAYMENT 행을 생성한다. 1회 충전 10,000 ~ 50,000원, 충전 후 잔액(balance + held_balance)이 500,000원을 넘으면 409.
      * - 앱 충전은 PORTONE만 허용 (16일 회의). PENDING으로 생성 후 반환된 orderId로 앱에서 결제창 호출 → 결제 후 `/api/payments/confirm` 호출
      * - pgProvider = DUMMY는 400 DUMMY_CHARGE_NOT_ALLOWED (3.3.0). 시연 충전은 운영자 웹의 지갑 잔액 조정(`PATCH /api/admin/users/{userId}/wallet`)으로 한다
      * - 3.7.0: PORTONE 연동은 캡스톤 범위 외 — 이 API와 `/api/payments/confirm`은 명세만 유지(구현 선택). 시연 충전은 운영자 잔액 조정으로만 한다
@@ -52,8 +52,8 @@ public class PaymentService {
      * PG 결제 완료 후 호출. 서버가 PG사에 결제 금액을 재검증한 뒤 처리한다.
      * - 성공: status = PAID, pg_tid·paid_at 저장, WALLET.balance 증가, POINT_HISTORY CHARGE(payment_id 연결), PAYMENT 알림
      * - 미수금 자동 납부 (3.5.0): CHARGE 직후 같은 트랜잭션에서 미수금을 debt_due_at 빠른 순으로 DEBT_PAY. 응답 balanceAfter는 자동 납부 후 잔액
-     *   - 잔액 상한(1,000,000원) 검사는 자동 납부 전 금액 기준
-     * - 충전 후 지갑 잔액이 상한(1,000,000원)을 넘으면 PG 결제를 취소하고 status = FAILED (WALLET_LIMIT_EXCEEDED)
+     *   - 잔액 상한(500,000원) 검사는 자동 납부 전 금액 기준
+     * - 충전 후 지갑 잔액이 상한(500,000원)을 넘으면 PG 결제를 취소하고 status = FAILED (WALLET_LIMIT_EXCEEDED)
      * - 금액 불일치·PG 실패: status = FAILED
      * <p>
      * <b>에러 코드</b>

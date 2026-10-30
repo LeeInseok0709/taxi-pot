@@ -51,7 +51,7 @@ public class WalletLedger {
     }
 
     /**
-     * 입금. checkLimit = true 면 balance + held_balance 상한(1,000,000) 검사 → 409 WALLET_LIMIT_EXCEEDED.
+     * 입금. checkLimit = true 면 balance + held_balance 상한(500,000) 검사 → 409 WALLET_LIMIT_EXCEEDED.
      * HOST_PAYOUT·WITHDRAW_REFUND 는 상한 검사를 하지 않는다 (checkLimit = false).
      */
     @Transactional(propagation = Propagation.MANDATORY)

@@ -179,7 +179,7 @@ public JoinResponse join(Long userId, Long potId, JoinRequest request) {
 |---|---|---|
 | 지각 경고 시점 (명세: 'N은 서버 설정값') | 집결 기한 3분 전 | `app.pot.late-warning-minutes` |
 | 시연 프로필의 단축 시간 (명세: '시연용 프로필에서 짧게 줄인다') | 정하지 않음 (명세 값 그대로) | `application-demo.yml` 주석 |
-| 은행 목록 (명세: '서버 상수') | 22개, 금융결제원 은행 코드 | `BankCatalog` |
+| 은행 목록 (명세: '서버 상수') | 6개(국민·농협·신한·우리·카카오뱅크·토스뱅크), 금융결제원 은행 코드 | `BankCatalog` |
 | 퀵블록 code 값 (명세는 문구만 있음) | `LATE_1`~`LATE_5`, `ARRIVED` | `QuickBlockCatalog` |
 | 이메일 인증코드 자릿수 (DB: VARCHAR(10)) | 숫자 6자리 | `app.verification.email-code-length` |
 | 실시간 `POT_UPDATED` payload | `{potId}` | `PotRealtimePublisher` |
