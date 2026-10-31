@@ -1,0 +1,21 @@
+# 로컬 개발용. 이 파일을 복사해 application-local.yml 로 이름을 바꿔 쓴다 (application-local.yml 은 커밋 금지).
+# ※ 아래 키는 로컬 개발 전용. 시연·운영 서버에서는 환경변수로 다른 값을 넣는다.
+spring:
+  datasource:
+    username: taxipot          # db/create-database.sql 로 만든 계정
+    password: taxipot
+
+app:
+  jwt:
+    secret: Y7Jls_kpI0IIRfe3ec9IJriPYfp9RGjNWXvFecCs-P5aRq7wXfV71H1kYOYq-4W5   # 32바이트 이상
+  crypto:
+    aes-key: JF/fv37Mds+KFrKidp2o+5p/1v/9XTRJPRJVI1FFol4=   # Base64 32바이트
+  admin:
+    email: admin@taxipot.local
+    password: admin1234!
+  security:
+    debug-header-enabled: true   # Swagger 의 X-Debug-User-Id 로 토큰 없이 호출
+  scheduler:
+    enabled: false               # 같은 DB 를 여럿이 쓸 때 서로의 방을 자동 처리하지 않게
+  mail:
+    enabled: false               # 인증코드는 서버 로그에 찍힘
