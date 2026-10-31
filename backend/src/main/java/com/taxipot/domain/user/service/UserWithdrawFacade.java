@@ -1,10 +1,29 @@
 package com.taxipot.domain.user.service;
 
+import com.taxipot.domain.payment.entity.Payment;
+import com.taxipot.domain.payment.repository.PaymentRepository;
+import com.taxipot.domain.pot.repository.TaxipotMemberRepository;
+import com.taxipot.domain.settlement.repository.SettlementRepository;
 import com.taxipot.domain.user.dto.WithdrawRequest;
-import com.taxipot.global.error.NotImplementedYetException;
+import com.taxipot.domain.user.entity.User;
+import com.taxipot.domain.wallet.entity.Wallet;
+import com.taxipot.domain.wallet.service.LockedMember;
+import com.taxipot.domain.wallet.service.MemberWalletLocker;
+import com.taxipot.domain.wallet.service.WalletLedger;
+import com.taxipot.global.code.PaymentStatus;
+import com.taxipot.global.code.PointType;
+import com.taxipot.global.code.SettlementStatus;
+import com.taxipot.global.error.BusinessException;
+import com.taxipot.global.error.ErrorCode;
+import com.taxipot.global.error.Errors;
+import com.taxipot.global.time.TimeProvider;
+import com.taxipot.global.web.UnpaidDebtQuery;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * 담당: 회원·운영
@@ -14,6 +33,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class UserWithdrawFacade {
+
+    // Facade 는 여러 도메인을 함께 다루므로 다른 도메인 Repository·공용 컴포넌트를 직접 주입한다 (CONVENTIONS 5장)
+    private final MemberWalletLocker memberWalletLocker;
+    private final WalletLedger walletLedger;
+    private final TaxipotMemberRepository taxipotMemberRepository;
+    private final SettlementRepository settlementRepository;
+    private final PaymentRepository paymentRepository;
+    private final UnpaidDebtQuery unpaidDebtQuery;
+    private final PasswordEncoder passwordEncoder;
+    private final TimeProvider timeProvider;
 
     /**
      * <b>POST /api/users/me/withdraw</b> — 회원 탈퇴 (논리 삭제)
@@ -38,7 +67,53 @@ public class UserWithdrawFacade {
      */
     @Transactional
     public void withdraw(Long userId, WithdrawRequest request) {
-        // TODO(회원·운영): 위 명세대로 구현
-        throw new NotImplementedYetException("POST /api/users/me/withdraw");
+        // 0. 락: USERS → WALLET 순서 (CONVENTIONS 8장). 탈퇴 도중 참여·충전이 끼어들지 못하게 한다
+        LockedMember me = memberWalletLocker.lock(userId);
+        User user = me.user();
+        Wallet wallet = me.wallet();
+
+        // 1. 비밀번호 확인 (401 INVALID_CREDENTIALS)
+        if (user.getPwHash() == null || !passwordEncoder.matches(request.password(), user.getPwHash())) {
+            throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
+        }
+
+        // 2. 잔액 소멸 동의 (true 만 허용, 400 BALANCE_FORFEIT_NOT_AGREED)
+        if (!Boolean.TRUE.equals(request.agreeBalanceForfeit())) {
+            throw new BusinessException(ErrorCode.BALANCE_FORFEIT_NOT_AGREED);
+        }
+
+        // 3. 진행 중인 참여·입장 요청 (409 ACTIVE_POT_EXISTS, detail.activePotId)
+        List<Long> activePotIds = taxipotMemberRepository.findActivePotIds(userId);
+        if (!activePotIds.isEmpty()) {
+            throw Errors.activePotExists(activePotIds.get(0));
+        }
+
+        // 3-1. 아직 정산되지 않은 예치(HELD): 실요금 청구 후 정산 대기 중인 방 등
+        settlementRepository.findFirstByMemberIdAndStatusOrderByIdDesc(userId, SettlementStatus.HELD)
+                .ifPresent(held -> {
+                    throw Errors.activePotExists(held.getPotId());
+                });
+
+        // 4. 미수금 (409 UNPAID_DEBT_EXISTS). 보통 이용 제한 인터셉터에서 먼저 막히지만 한 번 더 확인
+        unpaidDebtQuery.findUnpaid(userId).ifPresent(debt -> {
+            throw Errors.unpaidDebtExists(debt.totalAmount(), debt.earliestDueAt());
+        });
+
+        // 5. 결제 대기(PENDING) 충전 정리 → FAILED (포인트 지급 없음)
+        //    TODO(지갑·정산): 포트원 연동 시 PG 결제 조회 → 결제 완료면 PG 취소. 조회·취소 실패면 409 PAYMENT_CHECK_FAILED
+        //    시연(PG 미연동)에서는 PENDING 결제가 생기지 않으므로 상태만 정리한다
+        for (Payment payment : paymentRepository.findAllByMemberIdAndStatus(userId, PaymentStatus.PENDING)) {
+            payment.markFailed();
+        }
+
+        // 6. 남은 잔액 소멸: POINT_HISTORY BALANCE_EXPIRE(−balance), balance = 0
+        int balance = wallet.getBalance();
+        if (balance > 0) {
+            walletLedger.debit(wallet, PointType.BALANCE_EXPIRE, balance, null, null);
+        }
+
+        // 7. 탈퇴 처리: status = WITHDRAWN, withdrawn_at = now, fcm_token = NULL, token_version + 1
+        //    (모든 기기 토큰 즉시 무효. 개인정보는 14일 후 스케줄러 6번이 파기)
+        user.withdraw(timeProvider.now());
     }
 }
