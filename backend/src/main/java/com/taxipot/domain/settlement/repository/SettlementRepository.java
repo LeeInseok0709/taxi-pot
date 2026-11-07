@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -28,4 +29,8 @@ public interface SettlementRepository extends JpaRepository<Settlement, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select s from Settlement s where s.id = :id")
     Optional<Settlement> findByIdForUpdate(@Param("id") Long id);
+
+    /** 스케줄러 8: 기한이 지난 미납(UNPAID) 미수금의 정산 번호 (번호만 먼저 뽑고, 한 건씩 잠가서 다시 확인) */
+    @Query("select s.id from Settlement s where s.debtStatus = :status and s.debtDueAt <= :now")
+    List<Long> findIdsByDebtStatusAndDueAtUpTo(@Param("status") DebtStatus status, @Param("now") LocalDateTime now);
 }

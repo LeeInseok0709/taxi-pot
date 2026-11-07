@@ -96,9 +96,9 @@ class AdminFareClaimServiceReviewTest {
     @BeforeEach
     void setUp() {
         WalletLedger ledger = new WalletLedger(walletRepository, pointHistoryRepository, props);
+        SettlementExecutor executor = new SettlementExecutor(settlementRepository, ledger, notificationSender, props);
         service = new AdminFareClaimService(fareClaimRepository, taxipotRepository, fareClaimResponseFactory, fileStorage,
-                taxipotMemberRepository, settlementRepository, memberWalletLocker, ledger, notificationSender,
-                potRealtimePublisher, props, timeProvider);
+                taxipotMemberRepository, memberWalletLocker, executor, notificationSender, potRealtimePublisher, timeProvider);
 
         when(props.pot()).thenReturn(new AppProperties.Pot(15, 24, 5, 10, 30, 3, 3, 12, 10, 1_000, 15, 1_000, 500_000));
         when(props.debt()).thenReturn(new AppProperties.Debt(3));
