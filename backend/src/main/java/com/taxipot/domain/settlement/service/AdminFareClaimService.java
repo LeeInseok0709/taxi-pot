@@ -1,12 +1,21 @@
 package com.taxipot.domain.settlement.service;
 
+import com.taxipot.domain.pot.entity.Taxipot;
+import com.taxipot.domain.pot.repository.TaxipotRepository;
 import com.taxipot.domain.settlement.dto.FareClaimPageResponse;
 import com.taxipot.domain.settlement.dto.FareClaimResponse;
 import com.taxipot.domain.settlement.dto.FareClaimReviewRequest;
+import com.taxipot.domain.settlement.repository.FareClaimRepository;
 import com.taxipot.global.code.FareClaimStatus;
+import com.taxipot.global.error.Errors;
 import com.taxipot.global.error.NotImplementedYetException;
+import com.taxipot.global.file.FileStorage;
 import com.taxipot.global.file.StoredFile;
+import com.taxipot.global.response.PageMeta;
+import com.taxipot.global.response.Paging;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +28,14 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AdminFareClaimService {
 
+    /** 운영자 화면에서 영수증을 여는 경로 */
+    static final String ADMIN_RECEIPT_PREFIX = "/api/admin/pots/";
+
+    private final FareClaimRepository fareClaimRepository;
+    private final TaxipotRepository taxipotRepository;
+    private final FareClaimResponseFactory fareClaimResponseFactory;
+    private final FileStorage fileStorage;
+
     /**
      * <b>GET /api/admin/fare-claims</b> — 실요금 청구 목록 (운영자, 3.5.0)
      * <p>
@@ -30,8 +47,18 @@ public class AdminFareClaimService {
      */
     @Transactional(readOnly = true)
     public FareClaimPageResponse getFareClaims(Long adminId, FareClaimStatus fareClaimStatus, int page, int size) {
-        // TODO(지갑·정산): 위 명세대로 구현
-        throw new NotImplementedYetException("GET /api/admin/fare-claims");
+        // 상태를 안 고르면 PENDING(확인 대기)
+        FareClaimStatus status = fareClaimStatus == null ? FareClaimStatus.PENDING : fareClaimStatus;
+
+        // 청구 시각 순 (오래 기다린 것부터). OVERDUE 는 청구 시각이 없으니 탑승 시작 시각, 마지막으로 방 번호
+        Sort sort = Sort.by(Sort.Order.asc("fareClaimedAt"), Sort.Order.asc("startedAt"), Sort.Order.asc("id"));
+        Page<Taxipot> result = fareClaimRepository.findAllByFareClaimStatus(status, Paging.of(page, size, sort));
+
+        return new FareClaimPageResponse(
+                result.getContent().stream()
+                        .map(pot -> fareClaimResponseFactory.of(pot, ADMIN_RECEIPT_PREFIX))
+                        .toList(),
+                PageMeta.from(result));
     }
 
     /**
@@ -79,7 +106,8 @@ public class AdminFareClaimService {
      */
     @Transactional(readOnly = true)
     public StoredFile getReceipt(Long adminId, Long potId) {
-        // TODO(지갑·정산): 위 명세대로 구현
-        throw new NotImplementedYetException("GET /api/admin/pots/{potId}/receipt");
+        Taxipot pot = taxipotRepository.findById(potId).orElseThrow(() -> Errors.notFound("택시팟"));
+        // 영수증이 없거나(장애 복구 입력 등) 90일 지나 파기됐으면 FileStorage 가 404
+        return fileStorage.load(pot.getReceiptImgPath());
     }
 }
