@@ -62,7 +62,9 @@ class AdminFareClaimServiceQueryTest {
     @BeforeEach
     void setUp() {
         FareClaimResponseFactory factory = new FareClaimResponseFactory(taxipotMemberRepository, userRepository, appProperties);
-        service = new AdminFareClaimService(fareClaimRepository, taxipotRepository, factory, fileStorage);
+        // 목록·영수증 조회에는 정산용 부품이 필요 없어 null 로 둔다
+        service = new AdminFareClaimService(fareClaimRepository, taxipotRepository, factory, fileStorage,
+                null, null, null, null, null, null, appProperties, null);
         when(appProperties.fareClaim()).thenReturn(new AppProperties.FareClaim(24));
 
         pot = mock(Taxipot.class);
