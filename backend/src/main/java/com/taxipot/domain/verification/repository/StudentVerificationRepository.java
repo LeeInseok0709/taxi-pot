@@ -29,6 +29,11 @@ public interface StudentVerificationRepository extends JpaRepository<StudentVeri
 
     Page<StudentVerification> findAllByReviewStatus(ReviewStatus reviewStatus, Pageable pageable);
 
+    /** 운영자 심사용: 두 운영자가 같은 건을 동시에 심사하지 못하게 행을 잠근다 */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select v from StudentVerification v where v.id = :id")
+    Optional<StudentVerification> findByIdForUpdate(@Param("id") Long id);
+
     /**
      * 실패 횟수 + 1 (명세: 동시 입력으로 6 이상이 되지 않게 조건부 UPDATE).
      * @return 1 이면 증가됨, 0 이면 이미 5회

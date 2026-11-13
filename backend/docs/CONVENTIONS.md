@@ -8,7 +8,7 @@
 
 | 담당 | 이름 | 패키지·클래스 | 상태 |
 |---|---|---|---|
-| 공통·인증 | (이름) | `global/**`, `domain/auth`, `domain/verification`의 `VerificationService`, `domain/notification`, `domain/university`, `domain/scheduler`, `domain/admin/bootstrap`, `tools/` | 구현 완료 (유지보수) |
+| 공통·인증 | 기성 | `global/**`, `domain/auth`, `domain/verification`의 `VerificationService`, `domain/notification`, `domain/university`, `domain/scheduler`, `domain/admin/bootstrap`, `tools/` | 구현 완료 (유지보수) |
 | 택시팟 | (이름) | `domain/pot/**`(목록·생성·상세·수정·취소·탑승 시작, 참여·취소·좌석·도착·내보내기, 입장 요청, 내 이용 기록, 운영자 방 목록, `PotJobService`), `domain/chat/**` | 스텁 |
 | 지갑·정산 | (이름) | `domain/wallet/**`(조회·내역·미수금·출금·운영자 잔액 조정), `domain/payment/**`, `domain/settlement/**`(실요금 청구·정산 조회·영수증·운영자 청구 심사·장애 복구 일괄 입력, `SettlementJobService`) | 스텁 |
 | 회원·운영 | (이름) | `domain/user/**`(내 정보·수정·탈퇴·비밀번호·계좌·FCM·공개 프로필·운영자 회원 관리, `MemberJobService`), `domain/verification`의 `AdminVerificationService`, `domain/report/**`, `domain/rating/**`(`RatingJobService`), `domain/admin`의 `StatisticsService` | 스텁 |

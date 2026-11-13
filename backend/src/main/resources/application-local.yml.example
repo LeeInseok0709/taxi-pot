@@ -1,0 +1,30 @@
+# 로컬 개발용 설정 양식
+# 사용법: 이 파일을 복사해서 이름을 application-local.yml 로 바꾼다 (.gitignore 에 있어 깃에 안 올라감)
+# 아래 키 값은 로컬 개발 전용이다. 시연·운영 서버에서는 환경변수로 따로 넣는다.
+
+spring:
+  datasource:
+    # db/create-database.sql 로 만든 계정. 바꿨으면 여기도 수정
+    username: taxipot
+    password: taxipot
+  jpa:
+    show-sql: false   # SQL 로그를 보고 싶으면 true
+
+app:
+  jwt:
+    # 32바이트 이상 문자열
+    secret: local-dev-secret-taxipot-0123456789abcdef!!
+  crypto:
+    # Base64 인코딩 32바이트. 팀원 모두 같은 값을 써야 서로의 DB 덤프를 읽을 수 있음
+    aes-key: dGF4aXBvdC1sb2NhbC1kZXYta2V5LTMyLWJ5dGVzISE=
+  security:
+    # Swagger 에서 X-Debug-User-Id 헤더로 로그인 없이 테스트 (local 전용)
+    debug-header-enabled: true
+  admin:
+    # 처음 실행할 때 운영자 계정 자동 생성
+    email: admin@taxipot.local
+    password: admin1234!
+  mail:
+    enabled: false    # false 면 인증코드를 메일 대신 서버 로그에 출력
+  scheduler:
+    enabled: false    # 스케줄러 작업 구현 전에는 false
