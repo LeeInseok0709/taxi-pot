@@ -28,7 +28,7 @@ JDK 17 이상(17·21 모두 가능, 결과물은 Java 17 호환), MySQL 8.0.16 �
 
 `http://localhost:8080/swagger-ui.html`을 엽니다. 오른쪽 위 목록에서 두 문서를 고를 수 있습니다. '택시팟 API 명세서 3.9.0 (공식)'은 팀이 합의한 원본이고, '서버 구현 (자동)'은 지금 서버 코드에서 만든 문서라 여기서 실제로 호출해 볼 수 있습니다.
 
-로그인이 필요한 API는 두 가지 방법으로 부릅니다. 첫째, `POST /api/auth/login` 응답의 `accessToken`을 Swagger의 `Authorize`에 넣습니다. 둘째, local 프로필에서만 각 API의 `X-Debug-User-Id` 칸에 회원 번호를 넣으면 토큰 없이 그 회원으로 호출됩니다. 운영자는 `admin@taxipot.local / admin1234!`입니다.
+로그인이 필요한 API는 두 가지 방법으로 부릅니다. 첫째, `POST /api/auth/login` 응답의 `accessToken`을 Swagger의 `Authorize`에 넣습니다. 둘째, local 프로필에서만 각 API의 `X-Debug-User-Id` 칸에 회원 번호를 넣으면 토큰 없이 그 회원으로 호출됩니다. 운영자는 `admin@taxipot.local / admin1234!`입니다. 이 값은 명세에 없어 틀에서 정한 개발용 값이므로, 팀원이 함께 접속하는 서버에서는 반드시 바꿉니다(`docs/CONVENTIONS.md` 15장).
 
 local 프로필은 메일을 보내지 않고 인증코드를 서버 로그에 찍습니다(`[인증코드-로그 발송] 이메일 → 123456`). 가입 직후 1분 안에 그 코드를 `POST /api/verifications/email-code/confirm`에 넣으면 됩니다.
 

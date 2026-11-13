@@ -1,23 +1,55 @@
 package com.taxipot.domain.pot.service;
 
+import com.taxipot.domain.notification.service.NotificationSender;
 import com.taxipot.domain.pot.dto.JoinRequestCreateRequest;
 import com.taxipot.domain.pot.dto.JoinRequestResponse;
 import com.taxipot.domain.pot.dto.JoinResponse;
-import com.taxipot.global.error.NotImplementedYetException;
+import com.taxipot.domain.pot.entity.Taxipot;
+import com.taxipot.domain.pot.entity.TaxipotMember;
+import com.taxipot.domain.pot.realtime.PotRealtimePublisher;
+import com.taxipot.domain.pot.repository.TaxipotMemberRepository;
+import com.taxipot.domain.pot.repository.TaxipotRepository;
+import com.taxipot.domain.user.entity.User;
+import com.taxipot.domain.wallet.service.LockedMember;
+import com.taxipot.domain.wallet.service.MemberWalletLocker;
+import com.taxipot.global.code.NotificationType;
+import com.taxipot.global.code.PotMemberStatus;
+import com.taxipot.global.code.PotStatus;
+import com.taxipot.global.error.BusinessException;
+import com.taxipot.global.error.ErrorCode;
+import com.taxipot.global.error.Errors;
+import com.taxipot.global.time.TimeProvider;
+import com.taxipot.global.util.GeoUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 담당: 택시팟
- * <p>메서드 주석 = 명세 3.9.0 의 설명·에러 코드. 구현하면 NotImplementedYetException 줄을 지운다.
+ * <p>메서드 주석 = 명세 3.9.0 의 설명·에러 코드.
  * <p>다른 도메인 Service 를 부를 때는 docs/CONVENTIONS.md 5장 의존 방향을 지킨다.
+ * <p>입장 요청 행은 TAXIPOT_MEMBER(status = REQUESTED)에 두고, 요청 시각은 joined_at 에 기록한다 (예치는 수락 때).
  */
 @Service
 @RequiredArgsConstructor
 public class JoinRequestService {
+
+    private final TaxipotRepository taxipotRepository;
+    private final TaxipotMemberRepository memberRepository;
+    private final MemberWalletLocker memberWalletLocker;
+    private final PotEligibilityValidator eligibilityValidator;
+    private final PotPolicy potPolicy;
+    private final PotDeposit potDeposit;
+    private final PotExitHandler potExitHandler;
+    private final PotMapper potMapper;
+    private final NotificationSender notificationSender;
+    private final PotRealtimePublisher potRealtimePublisher;
+    private final TimeProvider timeProvider;
 
     /**
      * <b>POST /api/pots/{potId}/join-requests</b> — 입장 요청 (참여 마감 후, 3.3.0)
@@ -40,8 +72,58 @@ public class JoinRequestService {
      */
     @Transactional
     public JoinRequestResponse createJoinRequest(Long userId, Long potId, JoinRequestCreateRequest request) {
-        // TODO(택시팟): 위 명세대로 구현
-        throw new NotImplementedYetException("POST /api/pots/{potId}/join-requests");
+        // 1. USERS 2. WALLET 3. TAXIPOT
+        LockedMember me = memberWalletLocker.lock(userId);
+        Taxipot pot = taxipotRepository.findByIdForUpdate(potId).orElseThrow(() -> Errors.notFound("택시팟"));
+        LocalDateTime now = timeProvider.now();
+
+        TaxipotMember existing = memberRepository.findByPotIdAndMemberId(potId, userId).orElse(null);
+        if (existing != null) {
+            switch (existing.getStatus()) {
+                case KICKED, NO_SHOW -> throw new BusinessException(ErrorCode.KICKED_FROM_POT);
+                case REJECTED -> throw new BusinessException(ErrorCode.JOIN_REQUEST_REJECTED);
+                case REQUESTED -> throw new BusinessException(ErrorCode.ALREADY_REQUESTED);
+                case JOINED, BOARDED -> throw new BusinessException(ErrorCode.ALREADY_JOINED);
+                default -> {
+                    // CANCELED: 같은 행으로 다시 요청 가능
+                }
+            }
+        }
+
+        // 가능 조건: RECRUITING(빈자리) + 참여 마감 이후 + 탑승 시작 전
+        if (pot.getStatus() == PotStatus.CLOSED) {
+            throw Errors.potFull(pot.getMaxMembers(), pot.getCurrentMembers());
+        }
+        if (pot.getStatus() != PotStatus.RECRUITING) {
+            throw new BusinessException(ErrorCode.INVALID_POT_STATUS);
+        }
+        if (now.isBefore(pot.getJoinDeadline())) {
+            throw new BusinessException(ErrorCode.JOIN_REQUEST_NOT_AVAILABLE);
+        }
+
+        // 위치: 출발지 반경 안 (서버 설정값)
+        int radius = potPolicy.arrivalRadiusMeters();
+        int distance = GeoUtils.distanceMeters(pot.getDepartureLat(), pot.getDepartureLng(), request.lat(), request.lng());
+        if (distance > radius) {
+            throw Errors.outOfArrivalRange(distance, radius);
+        }
+
+        // 일반 참여와 같은 공통 이용 조건 (예치는 수락 때 하지만 잔액도 지금 확인)
+        int holdAmount = potPolicy.holdAmount(pot.getExpectedFare(), pot.getMaxMembers());
+        eligibilityValidator.validate(me.user(), me.wallet(), pot, null, holdAmount);
+
+        TaxipotMember member;
+        if (existing == null) {
+            member = memberRepository.save(TaxipotMember.request(potId, userId, request.preferredSeat(), now));
+        } else {
+            member = existing;
+            member.rerequest(request.preferredSeat(), now);
+        }
+
+        notificationSender.send(pot.getHostId(), potId, NotificationType.POT, "입장 요청",
+                "%s님이 '%s' 방에 입장을 요청했어요.".formatted(me.user().getNickname(), pot.getTitle()));
+        potRealtimePublisher.potUpdated(potId);
+        return potMapper.toJoinRequest(member, me.user());
     }
 
     /**
@@ -54,8 +136,16 @@ public class JoinRequestService {
      */
     @Transactional(readOnly = true)
     public List<JoinRequestResponse> getJoinRequests(Long userId, Long potId) {
-        // TODO(택시팟): 위 명세대로 구현
-        throw new NotImplementedYetException("GET /api/pots/{potId}/join-requests");
+        Taxipot pot = taxipotRepository.findById(potId).orElseThrow(() -> Errors.notFound("택시팟"));
+        if (!pot.isHost(userId)) {
+            throw new BusinessException(ErrorCode.NOT_POT_HOST);
+        }
+        List<TaxipotMember> requests = memberRepository.findAllByPotIdAndStatus(potId, PotMemberStatus.REQUESTED)
+                .stream()
+                .sorted(Comparator.comparing(TaxipotMember::getJoinedAt).thenComparing(TaxipotMember::getId))
+                .toList();
+        Map<Long, User> users = potMapper.usersById(requests.stream().map(TaxipotMember::getMemberId).toList());
+        return requests.stream().map(m -> potMapper.toJoinRequest(m, users.get(m.getMemberId()))).toList();
     }
 
     /**
@@ -68,8 +158,15 @@ public class JoinRequestService {
      */
     @Transactional
     public void withdrawJoinRequest(Long userId, Long potId) {
-        // TODO(택시팟): 위 명세대로 구현
-        throw new NotImplementedYetException("DELETE /api/pots/{potId}/join-requests/me");
+        // 수락과 동시에 들어와도 한쪽만 처리되도록 수락과 같은 순서로 잠근다 (요청자 USERS → WALLET → TAXIPOT)
+        memberWalletLocker.lock(userId);
+        taxipotRepository.findByIdForUpdate(potId).orElseThrow(() -> Errors.notFound("택시팟"));
+        TaxipotMember member = memberRepository.findByPotIdAndMemberId(potId, userId)
+                .filter(m -> m.getStatus() == PotMemberStatus.REQUESTED)
+                .orElseThrow(() -> new BusinessException(ErrorCode.JOIN_REQUEST_NOT_FOUND));
+
+        member.cancel(timeProvider.now());   // 예치 전이라 환불 없음
+        potRealtimePublisher.potUpdated(potId);
     }
 
     /**
@@ -89,8 +186,46 @@ public class JoinRequestService {
      */
     @Transactional
     public JoinResponse acceptJoinRequest(Long requesterId, Long potId, Long userId) {
-        // TODO(택시팟): 위 명세대로 구현
-        throw new NotImplementedYetException("POST /api/pots/{potId}/join-requests/{userId}/accept");
+        // 권한은 락 없이 먼저 (방장은 바뀌지 않는다) — 방장이 아니면 남의 지갑을 잠그지 않는다
+        Taxipot snapshot = taxipotRepository.findById(potId).orElseThrow(() -> Errors.notFound("택시팟"));
+        if (!snapshot.isHost(requesterId)) {
+            throw new BusinessException(ErrorCode.NOT_POT_HOST);
+        }
+
+        // 요청자 USERS → 요청자 WALLET → TAXIPOT
+        LockedMember target = memberWalletLocker.lock(userId);
+        Taxipot pot = taxipotRepository.findByIdForUpdate(potId).orElseThrow(() -> Errors.notFound("택시팟"));
+        TaxipotMember member = memberRepository.findByPotIdAndMemberId(potId, userId)
+                .filter(m -> m.getStatus() == PotMemberStatus.REQUESTED)
+                .orElseThrow(() -> new BusinessException(ErrorCode.JOIN_REQUEST_NOT_FOUND));
+        if (pot.getStatus() == PotStatus.CLOSED) {
+            throw Errors.potFull(pot.getMaxMembers(), pot.getCurrentMembers());
+        }
+        if (pot.getStatus() != PotStatus.RECRUITING) {
+            throw new BusinessException(ErrorCode.INVALID_POT_STATUS);
+        }
+
+        // 재검증 (요청 이후 바뀌었을 수 있음). 실패하면 예외 → 롤백되어 요청은 REQUESTED 로 남는다
+        int holdAmount = potPolicy.holdAmount(pot.getExpectedFare(), pot.getMaxMembers());
+        eligibilityValidator.validate(target.user(), target.wallet(), pot, null, holdAmount);
+
+        LocalDateTime now = timeProvider.now();
+        member.acceptRequest(now);                       // JOINED + arrived_at = now (반경 확인을 마친 요청이라 도착으로 간주)
+        potDeposit.hold(target.wallet(), potId, holdAmount);
+        pot.addMember();
+
+        notificationSender.send(userId, potId, NotificationType.POT, "입장 요청 수락",
+                "'%s' 방 입장이 수락되었어요. 예치금 %,d원이 예치되었습니다.".formatted(pot.getTitle(), holdAmount));
+
+        if (pot.getStatus() == PotStatus.CLOSED) {
+            // 자리가 다 찼으면 남은 대기자는 자동 취소
+            List<Long> others = potExitHandler.cancelPendingRequests(potId, now);
+            notificationSender.sendAll(others, potId, NotificationType.POT, "입장 요청 마감",
+                    "'%s' 방 자리가 모두 차서 입장 요청이 취소되었어요.".formatted(pot.getTitle()));
+        }
+        potRealtimePublisher.potUpdated(potId);
+        return new JoinResponse(potId, potMapper.toMember(member, target.user()), holdAmount,
+                target.wallet().getBalance(), pot.getStatus());
     }
 
     /**
@@ -105,7 +240,20 @@ public class JoinRequestService {
      */
     @Transactional
     public void rejectJoinRequest(Long requesterId, Long potId, Long userId) {
-        // TODO(택시팟): 위 명세대로 구현
-        throw new NotImplementedYetException("POST /api/pots/{potId}/join-requests/{userId}/reject");
+        Taxipot snapshot = taxipotRepository.findById(potId).orElseThrow(() -> Errors.notFound("택시팟"));
+        if (!snapshot.isHost(requesterId)) {
+            throw new BusinessException(ErrorCode.NOT_POT_HOST);
+        }
+        // 수락·철회와 같은 순서로 잠가 동시에 처리되지 않게 한다
+        memberWalletLocker.lock(userId);
+        Taxipot pot = taxipotRepository.findByIdForUpdate(potId).orElseThrow(() -> Errors.notFound("택시팟"));
+        TaxipotMember member = memberRepository.findByPotIdAndMemberId(potId, userId)
+                .filter(m -> m.getStatus() == PotMemberStatus.REQUESTED)
+                .orElseThrow(() -> new BusinessException(ErrorCode.JOIN_REQUEST_NOT_FOUND));
+
+        member.rejectRequest(timeProvider.now());   // has_canceled 는 그대로 (참여자 이탈이 아님)
+        notificationSender.send(userId, potId, NotificationType.POT, "입장 요청 거절",
+                "'%s' 방 방장이 입장 요청을 거절했어요.".formatted(pot.getTitle()));
+        potRealtimePublisher.potUpdated(potId);
     }
 }
