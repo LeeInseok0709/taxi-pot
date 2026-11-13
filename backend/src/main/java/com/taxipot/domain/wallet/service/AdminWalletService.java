@@ -2,7 +2,9 @@ package com.taxipot.domain.wallet.service;
 
 import com.taxipot.domain.wallet.dto.WalletAdjustRequest;
 import com.taxipot.domain.wallet.dto.WalletResponse;
-import com.taxipot.global.error.NotImplementedYetException;
+import com.taxipot.domain.wallet.entity.Wallet;
+import com.taxipot.global.code.PointType;
+import com.taxipot.global.time.TimeProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class AdminWalletService {
+
+    private final MemberWalletLocker memberWalletLocker;
+    private final WalletLedger walletLedger;
+    private final DebtAutoPayer debtAutoPayer;
+    private final WalletResponseFactory walletResponseFactory;
+    private final TimeProvider timeProvider;
 
     /**
      * <b>PATCH /api/admin/users/{userId}/wallet</b> — 지갑 잔액 조정 (시연 충전 수단, 3.7.0 확정)
@@ -30,7 +38,22 @@ public class AdminWalletService {
      */
     @Transactional
     public WalletResponse adjustWallet(Long adminId, Long userId, WalletAdjustRequest request) {
-        // TODO(지갑·정산): 위 명세대로 구현
-        throw new NotImplementedYetException("PATCH /api/admin/users/{userId}/wallet");
+        int amount = request.amount();
+
+        // 1. 락: 대상 회원 USERS → WALLET (없는 회원이면 404)
+        Wallet wallet = memberWalletLocker.lock(userId).wallet();
+
+        if (amount > 0) {
+            // 2-1. 입금: 상한(balance + held_balance ≤ 500,000) 검사 후 ADMIN_ADJUST(+)
+            walletLedger.credit(wallet, PointType.ADMIN_ADJUST, amount, null, null, null, true);
+            // 2-2. 미수금 자동 납부 (납부 기한 빠른 순, DEBT_PAY)
+            debtAutoPayer.payAll(wallet, timeProvider.now());
+        } else if (amount < 0) {
+            // 3. 차감: 잔액보다 많이 빼면 409 INSUFFICIENT_BALANCE, ADMIN_ADJUST(−)
+            walletLedger.debit(wallet, PointType.ADMIN_ADJUST, -amount, null, null);
+        }
+        // amount == 0 이면 바꿀 것이 없으므로 원장도 남기지 않는다 (WalletLedger 규칙: 0원 거래는 기록 안 함)
+
+        return walletResponseFactory.of(wallet);
     }
 }

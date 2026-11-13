@@ -1,13 +1,26 @@
 package com.taxipot.domain.wallet.service;
 
+import com.taxipot.domain.pot.entity.Taxipot;
+import com.taxipot.domain.pot.repository.TaxipotRepository;
+import com.taxipot.domain.settlement.entity.Settlement;
+import com.taxipot.domain.settlement.repository.SettlementRepository;
 import com.taxipot.domain.wallet.dto.DebtPayResponse;
 import com.taxipot.domain.wallet.dto.DebtResponse;
-import com.taxipot.global.error.NotImplementedYetException;
+import com.taxipot.domain.wallet.entity.Wallet;
+import com.taxipot.global.code.DebtStatus;
+import com.taxipot.global.code.PointType;
+import com.taxipot.global.error.BusinessException;
+import com.taxipot.global.error.ErrorCode;
+import com.taxipot.global.error.Errors;
+import com.taxipot.global.time.Kst;
+import com.taxipot.global.time.TimeProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 담당: 지갑·정산
@@ -18,6 +31,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DebtService {
 
+    private static final List<DebtStatus> DEBT_STATUSES = List.of(DebtStatus.UNPAID, DebtStatus.OVERDUE);
+
+    private final SettlementRepository settlementRepository;
+    private final TaxipotRepository taxipotRepository;
+    private final MemberWalletLocker memberWalletLocker;
+    private final WalletLedger walletLedger;
+    private final TimeProvider timeProvider;
+
     /**
      * <b>GET /api/wallet/debts</b> — 내 미수금 목록 조회 (3.3.0)
      * <p>
@@ -25,8 +46,30 @@ public class DebtService {
      */
     @Transactional(readOnly = true)
     public List<DebtResponse> getMyDebts(Long userId) {
-        // TODO(지갑·정산): 위 명세대로 구현
-        throw new NotImplementedYetException("GET /api/wallet/debts");
+        // 1. 내 미수금 (UNPAID·OVERDUE), 납부 기한 빠른 순
+        List<Settlement> debts = settlementRepository
+                .findAllByMemberIdAndDebtStatusInOrderByDebtDueAtAscIdAsc(userId, DEBT_STATUSES);
+        if (debts.isEmpty()) {
+            return List.of();
+        }
+
+        // 2. 화면에 보여줄 방 제목을 한 번에 가져오기 (미수금마다 따로 조회하지 않도록)
+        List<Long> potIds = debts.stream().map(Settlement::getPotId).distinct().toList();
+        Map<Long, String> potTitles = taxipotRepository.findAllById(potIds).stream()
+                .collect(Collectors.toMap(Taxipot::getId, Taxipot::getTitle));
+
+        // 3. 응답으로 바꾸기 (시각은 KST +09:00)
+        return debts.stream()
+                .map(s -> new DebtResponse(
+                        s.getId(),
+                        s.getPotId(),
+                        potTitles.get(s.getPotId()),
+                        Kst.toOffset(s.getSettledAt()),
+                        s.getUncoveredAmount(),
+                        s.getDebtStatus(),
+                        s.getDebtAmount(),
+                        Kst.toOffset(s.getDebtDueAt())))
+                .toList();
     }
 
     /**
@@ -45,7 +88,33 @@ public class DebtService {
      */
     @Transactional
     public DebtPayResponse payDebt(Long userId, Long settlementId) {
-        // TODO(지갑·정산): 위 명세대로 구현
-        throw new NotImplementedYetException("POST /api/wallet/debts/{settlementId}/pay");
+        // 1. 락 순서: USERS(본인) → WALLET(본인) → SETTLEMENT 행
+        Wallet wallet = memberWalletLocker.lock(userId).wallet();
+        Settlement settlement = settlementRepository.findByIdForUpdate(settlementId)
+                .filter(s -> s.getMemberId().equals(userId))          // 남의 정산 행이면 없는 것처럼 404
+                .orElseThrow(() -> Errors.notFound("미수금"));
+
+        // 2. 갚을 미수금이 없으면(NONE·PAID) 409 NO_DEBT
+        if (!settlement.hasDebt()) {
+            throw new BusinessException(ErrorCode.NO_DEBT);
+        }
+
+        // 3. 잔액이 0원이면 409 INSUFFICIENT_BALANCE (detail.requiredAmount = 남은 미수금)
+        int balance = wallet.getBalance();
+        if (balance == 0) {
+            throw Errors.insufficientBalance(settlement.getDebtAmount(), balance);
+        }
+
+        // 4. 납부액 = min(잔액, 남은 미수금) — 잔액이 모자라면 있는 만큼만 (부분 납부)
+        int paid = Math.min(balance, settlement.getDebtAmount());
+        walletLedger.debit(wallet, PointType.DEBT_PAY, paid, settlement.getPotId(), null);
+        settlement.payDebt(paid, timeProvider.now());   // 0이 되면 PAID + debt_paid_at
+
+        return new DebtPayResponse(
+                settlement.getId(),
+                paid,
+                settlement.getDebtStatus(),
+                settlement.getDebtAmount(),
+                wallet.getBalance());
     }
 }
