@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -36,4 +37,27 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("select new com.taxipot.global.security.AuthUserStatus(u.id, u.role, u.status, u.tokenVersion) "
             + "from User u where u.id = :id")
     Optional<AuthUserStatus> findAuthStatus(@Param("id") Long id);
+
+    /**
+     * 스케줄러 5 (정지 만료 해제) 대상 회원 id (락 없음, 오름차순).
+     * <p>SUSPENDED 이고 해제 시각이 지난 회원. suspended_until 이 NULL(영구 정지)이면 제외 — 영구 정지는 운영자만 해제한다.
+     * 실제 해제는 MemberJobProcessor 가 회원 1명씩 잠근 뒤 조건을 다시 확인하고 한다.
+     */
+    @Query("select u.id from User u "
+            + "where u.status = com.taxipot.global.code.UserStatus.SUSPENDED "
+            + "and u.suspendedUntil is not null and u.suspendedUntil <= :now "
+            + "order by u.id asc")
+    List<Long> findIdsToReleaseSuspension(@Param("now") LocalDateTime now);
+
+    /**
+     * 스케줄러 6 (탈퇴 회원 개인정보 파기) 대상 회원 id (락 없음, 오름차순).
+     * <p>WITHDRAWN 이고 탈퇴 시각이 기준(now − 14일) 이전이며, 아직 파기 전인 회원.
+     * '파기 전'은 email 이 남아 있는지로 판단한다 (탈퇴 전에는 DB CHECK 로 email 이 반드시 있고, 파기하면 NULL 이 된다).
+     */
+    @Query("select u.id from User u "
+            + "where u.status = com.taxipot.global.code.UserStatus.WITHDRAWN "
+            + "and u.withdrawnAt is not null and u.withdrawnAt <= :threshold "
+            + "and u.email is not null "
+            + "order by u.id asc")
+    List<Long> findIdsToPurge(@Param("threshold") LocalDateTime threshold);
 }
