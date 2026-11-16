@@ -6,6 +6,7 @@ import com.taxipot.domain.user.dto.AdminUserPageResponse;
 import com.taxipot.domain.user.dto.AdminUserResponse;
 import com.taxipot.domain.user.dto.MyPotHistoryPageResponse;
 import com.taxipot.domain.user.dto.UserStatusUpdateRequest;
+import com.taxipot.domain.user.service.AdminUserDetailFacade;
 import com.taxipot.domain.user.service.AdminUserService;
 import com.taxipot.global.code.UserStatus;
 import com.taxipot.global.security.LoginUserId;
@@ -31,6 +32,8 @@ public class AdminUserController {
 
     private final AdminUserService adminUserService;
     private final MyPotHistoryService myPotHistoryService;
+    /** 회원 상세는 여러 도메인(지갑·인증·신고·이용 기록)을 모으므로 Facade 가 처리한다 (CONVENTIONS 5장) */
+    private final AdminUserDetailFacade adminUserDetailFacade;
 
     @Operation(summary = "가입 회원 목록 조회")
     @GetMapping("/api/admin/users")
@@ -41,7 +44,7 @@ public class AdminUserController {
     @Operation(summary = "회원 상세 조회 (개인정보·지갑·캡처본·신고 이력 포함)")
     @GetMapping("/api/admin/users/{userId}")
     public AdminUserDetailResponse getUserDetail(@LoginUserId Long adminId, @PathVariable Long userId) {
-        return adminUserService.getUserDetail(adminId, userId);
+        return adminUserDetailFacade.getUserDetail(adminId, userId);
     }
 
     @Operation(summary = "회원 이용 기록 조회")
