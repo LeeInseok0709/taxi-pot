@@ -1780,13 +1780,13 @@ paths:
         "204":
           $ref: "#/components/responses/NoContent"
         "403":
-          description: NOT_POT_HOST
+          description: NOT_POT_HOST / NOT_POT_MEMBER(대상이 참여 중이 아님·본인)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "409":
-          description: MEMBER_ALREADY_ARRIVED / INVALID_POT_STATUS / NOT_POT_MEMBER(대상이 참여 중이 아님·본인)
+          description: MEMBER_ALREADY_ARRIVED / INVALID_POT_STATUS
           content:
             application/json:
               schema:

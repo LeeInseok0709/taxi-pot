@@ -1,11 +1,23 @@
 package com.taxipot.domain.settlement.service;
 
+import com.taxipot.domain.notification.service.NotificationSender;
+import com.taxipot.domain.pot.entity.Taxipot;
+import com.taxipot.domain.pot.realtime.PotRealtimePublisher;
+import com.taxipot.domain.pot.repository.TaxipotRepository;
 import com.taxipot.domain.settlement.dto.FareClaimRequest;
 import com.taxipot.domain.settlement.dto.FareClaimResponse;
-import com.taxipot.global.error.NotImplementedYetException;
+import com.taxipot.global.code.FareClaimStatus;
+import com.taxipot.global.code.NotificationType;
+import com.taxipot.global.code.PotStatus;
+import com.taxipot.global.error.BusinessException;
+import com.taxipot.global.error.ErrorCode;
+import com.taxipot.global.error.Errors;
+import com.taxipot.global.file.FileStorage;
+import com.taxipot.global.time.TimeProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 담당: 지갑·정산
@@ -15,6 +27,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class FareClaimService {
+
+    /** 방장 화면에서 영수증을 여는 경로 */
+    private static final String HOST_RECEIPT_PREFIX = "/api/pots/";
+
+    private final TaxipotRepository taxipotRepository;
+    private final FileStorage fileStorage;
+    private final NotificationSender notificationSender;
+    private final PotRealtimePublisher potRealtimePublisher;
+    private final FareClaimResponseFactory fareClaimResponseFactory;
+    private final TimeProvider timeProvider;
 
     /**
      * <b>POST /api/pots/{potId}/fare-claim</b> — 실요금 청구 (방장 전용, 3.5.0)
@@ -38,7 +60,46 @@ public class FareClaimService {
      */
     @Transactional
     public FareClaimResponse claimFare(Long userId, Long potId, FareClaimRequest request) {
-        // TODO(지갑·정산): 위 명세대로 구현
-        throw new NotImplementedYetException("POST /api/pots/{potId}/fare-claim");
+        // 0. 영수증 사진은 필수 (금액 범위 0~500,000 은 컨트롤러 @Valid 가 먼저 검사)
+        MultipartFile receiptImage = request.receiptImage();
+        if (receiptImage == null || receiptImage.isEmpty()) {
+            throw new BusinessException(ErrorCode.RECEIPT_REQUIRED);
+        }
+
+        // 1. 방 행을 잠근다 — 같은 방에 청구와 운영자 심사가 동시에 들어와도 순서대로 처리 (돈 이동이 없어 회원·지갑 락은 필요 없음)
+        Taxipot pot = taxipotRepository.findByIdForUpdate(potId)
+                .orElseThrow(() -> Errors.notFound("택시팟"));
+        if (!pot.getHostId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NOT_POT_HOST);
+        }
+
+        // 2. 청구 상태 먼저 본다 (APPROVED 방은 이미 COMPLETED 라, 상태보다 먼저 봐야 ALREADY_SETTLED 로 안내됨)
+        if (pot.getFareClaimStatus() == FareClaimStatus.PENDING) {
+            throw new BusinessException(ErrorCode.FARE_CLAIM_IN_REVIEW);
+        }
+        if (pot.getFareClaimStatus() == FareClaimStatus.APPROVED) {
+            throw new BusinessException(ErrorCode.ALREADY_SETTLED);
+        }
+        if (pot.getStatus() != PotStatus.RUNNING) {   // 탑승 시작 전이거나 취소된 방
+            throw new BusinessException(ErrorCode.INVALID_POT_STATUS);
+        }
+
+        // 3. 영수증 저장 (receipts/{potId}/{UUID}.jpg). 재청구면 이전 사진은 커밋된 뒤에 지운다
+        String oldReceipt = pot.getReceiptImgPath();
+        String newReceipt = fileStorage.saveImage(receiptImage, FileStorage.DIR_RECEIPT + "/" + potId);
+        if (oldReceipt != null) {
+            fileStorage.deleteAfterCommit(oldReceipt);
+        }
+
+        // 4. 청구 기록: 실요금·영수증 경로, PENDING, 청구 시각, 반려 사유 초기화
+        int actualFare = request.actualFare();
+        pot.claimFare(actualFare, newReceipt, timeProvider.now());
+
+        // 5. 운영자에게 확인 요청 알림, 탑승자 화면 새로고침 신호
+        notificationSender.sendToAdmins(potId, NotificationType.SYSTEM, "정산 청구 확인 요청",
+                "'%s' 방장이 실요금 %,d원을 청구했습니다.".formatted(pot.getTitle(), actualFare));
+        potRealtimePublisher.potUpdated(potId);
+
+        return fareClaimResponseFactory.of(pot, HOST_RECEIPT_PREFIX);
     }
 }

@@ -1,14 +1,37 @@
 package com.taxipot.domain.settlement.service;
 
+import com.taxipot.domain.notification.service.NotificationSender;
+import com.taxipot.domain.pot.entity.Taxipot;
+import com.taxipot.domain.pot.entity.TaxipotMember;
+import com.taxipot.domain.pot.realtime.PotRealtimePublisher;
+import com.taxipot.domain.pot.repository.TaxipotMemberRepository;
+import com.taxipot.domain.pot.repository.TaxipotRepository;
 import com.taxipot.domain.settlement.dto.FareClaimPageResponse;
 import com.taxipot.domain.settlement.dto.FareClaimResponse;
 import com.taxipot.domain.settlement.dto.FareClaimReviewRequest;
+import com.taxipot.domain.settlement.repository.FareClaimRepository;
+import com.taxipot.domain.wallet.service.LockedMember;
+import com.taxipot.domain.wallet.service.MemberWalletLocker;
 import com.taxipot.global.code.FareClaimStatus;
-import com.taxipot.global.error.NotImplementedYetException;
+import com.taxipot.global.code.NotificationType;
+import com.taxipot.global.code.PotMemberStatus;
+import com.taxipot.global.code.PotStatus;
+import com.taxipot.global.error.BusinessException;
+import com.taxipot.global.error.ErrorCode;
+import com.taxipot.global.error.Errors;
+import com.taxipot.global.file.FileStorage;
 import com.taxipot.global.file.StoredFile;
+import com.taxipot.global.response.PageMeta;
+import com.taxipot.global.response.Paging;
+import com.taxipot.global.time.TimeProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * 담당: 지갑·정산
@@ -18,6 +41,22 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class AdminFareClaimService {
+
+    /** 운영자 화면에서 영수증을 여는 경로 */
+    static final String ADMIN_RECEIPT_PREFIX = "/api/admin/pots/";
+
+    private static final List<PotMemberStatus> BOARDED = List.of(PotMemberStatus.BOARDED);
+
+    private final FareClaimRepository fareClaimRepository;
+    private final TaxipotRepository taxipotRepository;
+    private final FareClaimResponseFactory fareClaimResponseFactory;
+    private final FileStorage fileStorage;
+    private final TaxipotMemberRepository taxipotMemberRepository;
+    private final MemberWalletLocker memberWalletLocker;
+    private final SettlementExecutor settlementExecutor;
+    private final NotificationSender notificationSender;
+    private final PotRealtimePublisher potRealtimePublisher;
+    private final TimeProvider timeProvider;
 
     /**
      * <b>GET /api/admin/fare-claims</b> — 실요금 청구 목록 (운영자, 3.5.0)
@@ -30,8 +69,18 @@ public class AdminFareClaimService {
      */
     @Transactional(readOnly = true)
     public FareClaimPageResponse getFareClaims(Long adminId, FareClaimStatus fareClaimStatus, int page, int size) {
-        // TODO(지갑·정산): 위 명세대로 구현
-        throw new NotImplementedYetException("GET /api/admin/fare-claims");
+        // 상태를 안 고르면 PENDING(확인 대기)
+        FareClaimStatus status = fareClaimStatus == null ? FareClaimStatus.PENDING : fareClaimStatus;
+
+        // 청구 시각 순 (오래 기다린 것부터). OVERDUE 는 청구 시각이 없으니 탑승 시작 시각, 마지막으로 방 번호
+        Sort sort = Sort.by(Sort.Order.asc("fareClaimedAt"), Sort.Order.asc("startedAt"), Sort.Order.asc("id"));
+        Page<Taxipot> result = fareClaimRepository.findAllByFareClaimStatus(status, Paging.of(page, size, sort));
+
+        return new FareClaimPageResponse(
+                result.getContent().stream()
+                        .map(pot -> fareClaimResponseFactory.of(pot, ADMIN_RECEIPT_PREFIX))
+                        .toList(),
+                PageMeta.from(result));
     }
 
     /**
@@ -64,8 +113,80 @@ public class AdminFareClaimService {
      */
     @Transactional
     public FareClaimResponse reviewFareClaim(Long adminId, Long potId, FareClaimReviewRequest request) {
-        // TODO(지갑·정산): 위 명세대로 구현
-        throw new NotImplementedYetException("PATCH /api/admin/pots/{potId}/fare-claim");
+        FareClaimStatus decision = request.decision();
+        if (decision != FareClaimStatus.APPROVED && decision != FareClaimStatus.REJECTED) {
+            throw Errors.invalidInput("decision 은 APPROVED 또는 REJECTED 만 가능합니다.");
+        }
+        if (decision == FareClaimStatus.REJECTED) {
+            return reject(potId, request.rejectReason());
+        }
+        return approve(potId);
+    }
+
+    // =====================================================================
+    // 반려 — 돈 이동 없음, 방 행만 잠근다
+    // =====================================================================
+
+    private FareClaimResponse reject(Long potId, String rejectReason) {
+        if (rejectReason == null || rejectReason.isBlank()) {
+            throw new BusinessException(ErrorCode.REJECT_REASON_REQUIRED);
+        }
+        Taxipot pot = lockPot(potId);
+        requirePending(pot);
+
+        String reason = rejectReason.trim();
+        pot.rejectFareClaim(reason, timeProvider.now());
+
+        notificationSender.send(pot.getHostId(), potId, NotificationType.PAYMENT, "정산 청구 반려",
+                "반려 사유: %s. 결제내역을 확인해 다시 청구해 주세요.".formatted(reason));
+        potRealtimePublisher.potUpdated(potId);
+        return fareClaimResponseFactory.of(pot, ADMIN_RECEIPT_PREFIX);
+    }
+
+    // =====================================================================
+    // 승인 → 정산 실행 (명세 1~7단계, 한 트랜잭션)
+    // =====================================================================
+
+    private FareClaimResponse approve(Long potId) {
+        // 락 순서: 탑승자 전원 USERS·WALLET(member_id 오름차순) → TAXIPOT
+        List<Long> boardedIds = boardedMemberIds(potId);
+        Map<Long, LockedMember> locked = memberWalletLocker.lockAll(boardedIds);
+        Taxipot pot = lockPot(potId);
+
+        requirePending(pot);
+        if (pot.getStatus() != PotStatus.RUNNING || boardedIds.isEmpty()
+                || !boardedIds.equals(boardedMemberIds(potId))) {       // 잠그는 사이 탑승자가 바뀌지 않았는지
+            throw new BusinessException(ErrorCode.INVALID_POT_STATUS);
+        }
+
+        // 3~7단계(방장 정산금, 탑승자별 정산·미수금, 방 종료, 알림)는 장애 복구 입력과 같은 로직이라 SettlementExecutor 가 한다
+        settlementExecutor.execute(pot, pot.getActualFare(), locked, timeProvider.now());
+
+        potRealtimePublisher.potUpdated(potId);
+
+        return fareClaimResponseFactory.of(pot, ADMIN_RECEIPT_PREFIX);
+    }
+
+    // =====================================================================
+    // 내부 도우미
+    // =====================================================================
+
+    private Taxipot lockPot(Long potId) {
+        return taxipotRepository.findByIdForUpdate(potId).orElseThrow(() -> Errors.notFound("택시팟"));
+    }
+
+    private static void requirePending(Taxipot pot) {
+        if (pot.getFareClaimStatus() != FareClaimStatus.PENDING) {
+            throw new BusinessException(ErrorCode.FARE_CLAIM_NOT_PENDING);
+        }
+    }
+
+    /** 탑승 완료(BOARDED) 회원 번호, 오름차순 */
+    private List<Long> boardedMemberIds(Long potId) {
+        return taxipotMemberRepository.findAllByPotIdAndStatusInOrderByIdAsc(potId, BOARDED).stream()
+                .map(TaxipotMember::getMemberId)
+                .sorted()
+                .toList();
     }
 
     /**
@@ -79,7 +200,8 @@ public class AdminFareClaimService {
      */
     @Transactional(readOnly = true)
     public StoredFile getReceipt(Long adminId, Long potId) {
-        // TODO(지갑·정산): 위 명세대로 구현
-        throw new NotImplementedYetException("GET /api/admin/pots/{potId}/receipt");
+        Taxipot pot = taxipotRepository.findById(potId).orElseThrow(() -> Errors.notFound("택시팟"));
+        // 영수증이 없거나(장애 복구 입력 등) 90일 지나 파기됐으면 FileStorage 가 404
+        return fileStorage.load(pot.getReceiptImgPath());
     }
 }

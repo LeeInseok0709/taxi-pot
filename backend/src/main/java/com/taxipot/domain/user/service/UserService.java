@@ -1,6 +1,9 @@
 package com.taxipot.domain.user.service;
 
+import com.taxipot.domain.auth.catalog.BankCatalog;
+import com.taxipot.domain.auth.dto.BankResponse;
 import com.taxipot.domain.auth.dto.TokenResponse;
+import com.taxipot.domain.auth.service.AuthService;
 import com.taxipot.domain.user.dto.AccountResponse;
 import com.taxipot.domain.user.dto.AccountUpdateRequest;
 import com.taxipot.domain.user.dto.FcmTokenRequest;
@@ -8,11 +11,15 @@ import com.taxipot.domain.user.dto.MyProfileResponse;
 import com.taxipot.domain.user.dto.PasswordChangeRequest;
 import com.taxipot.domain.user.dto.UserPublicResponse;
 import com.taxipot.domain.user.dto.UserUpdateRequest;
+import com.taxipot.domain.user.entity.User;
 import com.taxipot.domain.user.mapper.UserMapper;
 import com.taxipot.domain.user.repository.UserRepository;
+import com.taxipot.global.error.BusinessException;
+import com.taxipot.global.error.ErrorCode;
 import com.taxipot.global.error.Errors;
-import com.taxipot.global.error.NotImplementedYetException;
+import com.taxipot.global.util.Texts;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +32,14 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserService {
 
+    /** 계좌번호 자릿수 (가입 API 와 같은 기준: 숫자 10~14자리) */
+    private static final int ACCOUNT_MIN_DIGITS = 10;
+    private static final int ACCOUNT_MAX_DIGITS = 14;
+
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    /** 비밀번호 변경 후 새 토큰 발급용 (CONVENTIONS 7장 공용 메서드 AuthService.tokens) */
+    private final AuthService authService;
 
     /**
      * <b>GET /api/users/me</b> — 내 정보 조회
@@ -52,8 +66,35 @@ public class UserService {
      */
     @Transactional
     public MyProfileResponse updateMyProfile(Long userId, UserUpdateRequest request) {
-        // TODO(회원·운영): 위 명세대로 구현
-        throw new NotImplementedYetException("PATCH /api/users/me");
+        User user = findUser(userId);
+
+        // 1. 닉네임: 값이 왔고 지금과 다를 때만 검사·변경
+        String nickname = request.nickname();
+        if (nickname != null && !nickname.equals(user.getNickname())) {
+            if (nickname.isBlank()) {
+                throw Errors.invalidInput("nickname: 닉네임은 비워 둘 수 없습니다.");
+            }
+            if (Texts.isReservedNickname(nickname)) {
+                throw new BusinessException(ErrorCode.RESERVED_NICKNAME);
+            }
+            // 사전 중복 검사 (동시 변경은 DB UNIQUE 위반 → DbConstraintTranslator 가 DUPLICATE_NICKNAME 으로 변환)
+            if (userRepository.existsByNickname(nickname)) {
+                throw new BusinessException(ErrorCode.DUPLICATE_NICKNAME);
+            }
+            user.changeNickname(nickname);
+        }
+
+        // 2. 휴대폰번호: 형식(@Pattern)은 컨트롤러 @Valid 가 검사, 저장은 숫자만 (가입과 동일)
+        if (request.phone() != null) {
+            user.changePhone(Texts.digitsOnly(request.phone()));
+        }
+
+        // 3. 마케팅 수신 동의
+        if (request.agreeMarketing() != null) {
+            user.changeAgreeMarketing(request.agreeMarketing());
+        }
+
+        return UserMapper.toMyProfile(user);
     }
 
     /**
@@ -68,8 +109,14 @@ public class UserService {
      */
     @Transactional
     public TokenResponse changePassword(Long userId, PasswordChangeRequest request) {
-        // TODO(회원·운영): 위 명세대로 구현
-        throw new NotImplementedYetException("PATCH /api/users/me/password");
+        User user = findUser(userId);
+        checkPassword(user, request.currentPassword());
+
+        // pw_hash 교체 + token_version + 1 → 다른 기기의 기존 토큰은 401 TOKEN_REVOKED
+        user.changePassword(passwordEncoder.encode(request.newPassword()));
+
+        // 바뀐 token_version 으로 이 기기용 새 토큰 발급
+        return authService.tokens(user);
     }
 
     /**
@@ -82,8 +129,11 @@ public class UserService {
      */
     @Transactional(readOnly = true)
     public AccountResponse getMyAccount(Long userId) {
-        // TODO(회원·운영): 위 명세대로 구현
-        throw new NotImplementedYetException("GET /api/users/me/account");
+        User user = findUser(userId);
+        if (!user.hasAccount()) {
+            throw Errors.notFound("출금 계좌");
+        }
+        return toAccountResponse(user);
     }
 
     /**
@@ -99,8 +149,31 @@ public class UserService {
      */
     @Transactional
     public AccountResponse updateMyAccount(Long userId, AccountUpdateRequest request) {
-        // TODO(회원·운영): 위 명세대로 구현
-        throw new NotImplementedYetException("PUT /api/users/me/account");
+        User user = findUser(userId);
+
+        // 1. 현재 비밀번호 확인 (401 INVALID_CREDENTIALS)
+        checkPassword(user, request.password());
+
+        // 2. 은행 코드: GET /api/banks 목록에 있는 코드만
+        if (!BankCatalog.exists(request.bankCode())) {
+            throw Errors.invalidInput("bankCode: 지원하지 않는 은행 코드입니다.");
+        }
+
+        // 3. 계좌번호: 숫자만 남겨 10~14자리 (저장 시 EncryptedStringConverter 가 AES-256-GCM 암호화)
+        String accountDigits = Texts.digitsOnly(request.accountNumber());
+        if (accountDigits.length() < ACCOUNT_MIN_DIGITS || accountDigits.length() > ACCOUNT_MAX_DIGITS) {
+            throw Errors.invalidInput("accountNumber: 계좌번호는 숫자 10~14자리여야 합니다.");
+        }
+
+        // 4. 예금주 = 가입자 이름 (본인 명의 계좌만)
+        String holder = request.accountHolder().trim();
+        if (user.getName() == null || !holder.equals(user.getName().trim())) {
+            throw new BusinessException(ErrorCode.ACCOUNT_HOLDER_MISMATCH);
+        }
+
+        // 5. 은행·계좌번호·예금주를 한 번에 교체 (이미 신청된 출금은 신청 시점 스냅샷이라 영향 없음)
+        user.registerAccount(request.bankCode(), accountDigits, holder);
+        return toAccountResponse(user);
     }
 
     /**
@@ -121,7 +194,40 @@ public class UserService {
      */
     @Transactional(readOnly = true)
     public UserPublicResponse getPublicProfile(Long requesterId, Long userId) {
-        // TODO(회원·운영): 위 명세대로 구현
-        throw new NotImplementedYetException("GET /api/users/{userId}");
+        User user = findUser(userId);
+        // 실명·학번·연락처는 내보내지 않는다. 탈퇴 회원도 이용 기록 표시용으로 조회 가능 (isWithdrawn 으로 구분)
+        return new UserPublicResponse(
+                user.getId(),
+                user.getNickname(),
+                user.getUniversity(),
+                user.getRatingAvg().doubleValue(),
+                user.isWithdrawn());
+    }
+
+    // ---------- 내부 도우미 ----------
+
+    private User findUser(Long userId) {
+        return userRepository.findById(userId).orElseThrow(() -> Errors.notFound("회원"));
+    }
+
+    /** 비밀번호 확인. 틀리면 401 INVALID_CREDENTIALS */
+    private void checkPassword(User user, String rawPassword) {
+        if (user.getPwHash() == null || !passwordEncoder.matches(rawPassword, user.getPwHash())) {
+            throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
+        }
+    }
+
+    /** 계좌 응답: 은행 이름은 BankCatalog 에서, 계좌번호는 앞 3자리·뒤 4자리만 보이게 마스킹 */
+    private AccountResponse toAccountResponse(User user) {
+        String bankName = BankCatalog.BANKS.stream()
+                .filter(b -> b.code().equals(user.getBankCode()))
+                .map(BankResponse::name)
+                .findFirst()
+                .orElse(null);
+        return new AccountResponse(
+                user.getBankCode(),
+                bankName,
+                Texts.maskAccount(user.getAccountNo()),
+                user.getAccountHolder());
     }
 }

@@ -10,6 +10,7 @@ out/
 
 # 로컬 비밀값·업로드 파일은 커밋 금지
 src/main/resources/application-secret.yml
+src/main/resources/application-local.yml
 .env
 uploads/
 logs/
