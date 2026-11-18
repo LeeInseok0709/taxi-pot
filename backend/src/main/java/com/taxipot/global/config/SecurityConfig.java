@@ -29,7 +29,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private static final String[] PUBLIC_POST = {"/api/auth/signup", "/api/auth/login", "/api/auth/refresh"};
-    private static final String[] PUBLIC_GET = {"/api/auth/nickname-check", "/api/universities", "/api/banks"};
+    private static final String[] PUBLIC_GET = {"/api/auth/nickname-check", "/api/universities", "/api/banks", "/api/health"};
     private static final String[] PUBLIC_ANY = {
             "/ws/**", "/error",
             "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/api-spec/**"

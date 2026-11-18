@@ -22,6 +22,9 @@ public interface SettlementRepository extends JpaRepository<Settlement, Long> {
 
     List<Settlement> findAllByPotIdAndStatus(Long potId, SettlementStatus status);
 
+    /** 회원 탈퇴 검사용: 아직 정산되지 않은(HELD) 예치가 있는 가장 최근 건 (회원·운영 담당 추가) */
+    Optional<Settlement> findFirstByMemberIdAndStatusOrderByIdDesc(Long memberId, SettlementStatus status);
+
     /** 미수금 목록 (UNPAID·OVERDUE), 납부 기한 빠른 순 = 자동 납부 순서 */
     List<Settlement> findAllByMemberIdAndDebtStatusInOrderByDebtDueAtAscIdAsc(Long memberId, Collection<DebtStatus> statuses);
 
