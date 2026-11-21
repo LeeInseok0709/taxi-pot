@@ -1,51 +1,243 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#FBF7F0"
     android:orientation="vertical">
 
-    <!-- 맨 위: 잔액 -->
-    <TextView
-        android:id="@+id/tvBalance"
+    <!-- 상단 바: 택시 아이콘 + 택시팟 + 알림 -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="12dp"
-        android:text="잔액 -원"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        android:layout_height="56dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
 
-    <!-- 가운데: 카카오맵 -->
-    <com.kakao.vectormap.MapView
-        android:id="@+id/mapView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@drawable/ic_taxi"
+            android:tint="#2B2B2B" />
 
-    <!-- 정렬 버튼 2개 -->
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:text="택시팟"
+            android:textColor="#2B2B2B"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/btnBell"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_bell"
+            android:tint="#2B2B2B" />
+    </LinearLayout>
+
+    <!-- 장소 검색 제목 + 잔액 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
 
-        <Button
-            android:id="@+id/btnSortDeparture"
+        <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="출발 임박순" />
+            android:text="장소 검색"
+            android:textColor="#2B2B2B"
+            android:textSize="13sp"
+            android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/btnSortLatest"
-            android:layout_width="0dp"
+        <TextView
+            android:id="@+id/tvBalance"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="최신순" />
+            android:paddingStart="10dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="4dp"
+            android:text="-P"
+            android:textColor="#2B2B2B"
+            android:textSize="12sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- 아래: 방 목록 -->
+    <!-- 검색창 (모양만, 기능은 나중에) -->
+    <TextView
+        android:id="@+id/tvSearch"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="20dp"
+        android:gravity="center_vertical"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:text="지하철역 · 장소 검색"
+        android:textColor="#8A8A8A"
+        android:textSize="14sp" />
+
+    <!-- 지도 카드 + 현위치 버튼 -->
+    <FrameLayout
+        android:id="@+id/mapCard"
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="20dp"
+        android:padding="1dp">
+
+        <com.kakao.vectormap.MapView
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <ImageView
+            android:id="@+id/btnMyLocation"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="10dp"
+            android:padding="9dp"
+            android:src="@drawable/ic_my_location"
+            android:tint="#2B2B2B" />
+    </FrameLayout>
+
+    <!-- 목록 제목 -->
+    <TextView
+        android:id="@+id/tvNearbyTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="8dp"
+        android:text="내 주변 모집 중 택시팟 0"
+        android:textColor="#2B2B2B"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <!-- 방 카드 목록 -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvPots"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp" />
+
+    <!-- 방 만들기 버튼 -->
+    <TextView
+        android:id="@+id/btnCreatePot"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="12dp"
+        android:gravity="center"
+        android:text="+ 방 만들기"
+        android:textColor="#2B2B2B"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <!-- 하단 메뉴 위 구분선 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E6DCCB" />
+
+    <!-- 하단 메뉴 (모양만) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:id="@+id/navHome"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/ivNavHome"
+                android:layout_width="48dp"
+                android:layout_height="28dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:src="@drawable/ic_home"
+                android:tint="#2B2B2B" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="홈 화면"
+                android:textColor="#2B2B2B"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navWallet"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="28dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:src="@drawable/ic_wallet"
+                android:tint="#6B6B6B" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="내 지갑"
+                android:textColor="#6B6B6B"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navMy"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="48dp"
+                android:layout_height="28dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:src="@drawable/ic_person"
+                android:tint="#6B6B6B" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="마이페이지"
+                android:textColor="#6B6B6B"
+                android:textSize="11sp" />
+        </LinearLayout>
+    </LinearLayout>
 </LinearLayout>
