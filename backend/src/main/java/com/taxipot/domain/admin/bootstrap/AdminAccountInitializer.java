@@ -38,12 +38,18 @@ public class AdminAccountInitializer implements ApplicationRunner {
         if (email == null || email.isBlank() || userRepository.existsByEmail(email)) {
             return;
         }
+        String password = props.admin().password();
+        if (password == null || password.isBlank()) {
+            // 비밀번호 없이 encode 하면 예외가 나서 서버가 뜨지 않는다 → 경고만 남기고 건너뛴다
+            log.warn("app.admin.password 가 비어 있어 운영자 계정을 만들지 않았습니다 (app.admin.email={})", email);
+            return;
+        }
         University university = universityRepository.findAllByIsActiveTrueOrderByNameAsc().stream().findFirst().orElse(null);
         if (university == null) {
             log.warn("UNIVERSITY 가 비어 있어 운영자 계정을 만들지 않았습니다 (db/schema.sql 의 INSERT 확인)");
             return;
         }
-        User admin = userRepository.save(User.createAdmin(email, passwordEncoder.encode(props.admin().password()),
+        User admin = userRepository.save(User.createAdmin(email, passwordEncoder.encode(password),
                 university.getName(), timeProvider.now()));
         walletLedger.open(admin.getId());
         log.info("운영자 계정 생성: {}", email);
