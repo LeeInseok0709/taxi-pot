@@ -29,6 +29,9 @@
         <activity
             android:name=".feature.pot.main.PotMainActivity"
             android:exported="false" />
+        <activity
+            android:name=".feature.pot.list.PotListActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
