@@ -47,9 +47,9 @@ class PotMainActivity : ComponentActivity() {
 
     // ===== 핀 크기 설정 (숫자만 바꿔서 조절) =====
     // 보통 말풍선 크기 (크면 줄이고, 작으면 키우기)
-    private val bubbleScale = 0.55f
+    private val bubbleScale = 0.65f
     // 작은 말풍선 크기 (중간 줌일 때)
-    private val smallBubbleScale = 0.38f
+    private val smallBubbleScale = 0.55f
     // 이 줌 레벨부터 "작은 말풍선" (이보다 더 축소하면 점만 보임)
     private val smallBubbleZoom = 14
     // 이 줌 레벨부터 "보통 말풍선"
