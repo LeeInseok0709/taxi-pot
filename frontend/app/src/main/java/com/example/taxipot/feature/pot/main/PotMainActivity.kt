@@ -39,7 +39,7 @@ class PotMainActivity : ComponentActivity() {
     // 카드를 눌렀을 때: 지도를 그 방 위치로 이동 (나중에 방 상세 화면으로 이동)
     private val adapter = PotListAdapter { pot ->
         moveCamera(pot.departureLat, pot.departureLng)
-        showToast("${pot.departureName} → ${pot.arrivalName} (상세 화면 준비 중)")
+        showToast("${pot.departureName} → ${pot.destinationName} (상세 화면 준비 중)")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -120,11 +120,11 @@ class PotMainActivity : ComponentActivity() {
                 // 핀을 눌렀을 때: 목록에서 그 방으로 스크롤
                 map.setOnLabelClickListener { _, _, label ->
                     val potId = label.tag as? Long
-                    val index = pots.indexOfFirst { it.potId == potId }
+                    val index = pots.indexOfFirst { it.id == potId }
                     if (index >= 0) {
                         val pot = pots[index]
                         binding.rvPots.smoothScrollToPosition(index)
-                        showToast("${pot.departureName} → ${pot.arrivalName}")
+                        showToast("${pot.departureName} → ${pot.destinationName}")
                     }
                     true
                 }
@@ -166,7 +166,7 @@ class PotMainActivity : ComponentActivity() {
         layer.removeAll()   // 예전 핀 지우고
         pots.forEach { pot ->
             val shortName = pot.departureName.replace("대학교", "대")
-            val text = "$shortName → ${pot.arrivalName} ${"%,d".format(pot.totalFare)}원"
+            val text = "$shortName → ${pot.destinationName} ${"%,d".format(pot.expectedFare)}원"
 
             // 줌 레벨별 모양 3가지: 0부터 점 / smallBubbleZoom부터 작은 말풍선 / normalBubbleZoom부터 보통 말풍선
             val styles = labelManager.addLabelStyles(
@@ -177,9 +177,9 @@ class PotMainActivity : ComponentActivity() {
                 )
             )
             layer.addLabel(
-                LabelOptions.from("pot_${pot.potId}", LatLng.from(pot.departureLat, pot.departureLng))
+                LabelOptions.from("pot_${pot.id}", LatLng.from(pot.departureLat, pot.departureLng))
                     .setStyles(styles)
-                    .setTag(pot.potId)   // 핀에 방 번호 달아두기 (눌렀을 때 사용)
+                    .setTag(pot.id)   // 핀에 방 번호 달아두기 (눌렀을 때 사용)
             )
         }
     }
