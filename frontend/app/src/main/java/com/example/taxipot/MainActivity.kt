@@ -1,20 +1,22 @@
 package com.example.taxipot
 
+import android.content.Intent
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import com.example.taxipot.core.network.ApiClient
+import com.example.taxipot.feature.auth.login.LoginActivity
+import com.example.taxipot.feature.pot.main.PotMainActivity
 
+/** 앱 시작 화면: 로그인 기록이 있으면 홈, 없으면 로그인으로 보낸다 */
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        val next = if (ApiClient.tokenManager.isLoggedIn()) {
+            PotMainActivity::class.java
+        } else {
+            LoginActivity::class.java
         }
+        startActivity(Intent(this, next))
+        finish()
     }
 }

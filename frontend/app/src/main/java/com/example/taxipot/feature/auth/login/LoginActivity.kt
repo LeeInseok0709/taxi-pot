@@ -16,6 +16,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.taxipot.databinding.ActivityLoginBinding
 import kotlinx.coroutines.launch
+import android.content.Intent
+import com.example.taxipot.feature.pot.main.PotMainActivity
 
 class LoginActivity : AppCompatActivity() {
 
@@ -98,13 +100,18 @@ class LoginActivity : AppCompatActivity() {
 
     private fun handleEvent(event: LoginEvent) {
         when (event) {
-            // TODO: PR #21 머지 후 PotMainActivity로 이동 + finish()
-            LoginEvent.GoHome -> showToast("로그인 성공 (홈 화면 연결 예정)")
+            LoginEvent.GoHome -> {
+                // 뒤로가기로 로그인 화면에 돌아오지 않도록 기존 화면 정리
+                startActivity(
+                    Intent(this, PotMainActivity::class.java)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                )
+                finish()
+            }
             // TODO: 학생 인증 화면 만들면 연결
             LoginEvent.GoVerification -> showToast("로그인 성공 · 학생 인증이 필요해요 (인증 화면 준비 중)")
         }
     }
-
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
