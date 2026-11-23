@@ -30,6 +30,9 @@
             android:name=".feature.pot.main.PotMainActivity"
             android:exported="false" />
         <activity
+            android:name=".feature.pot.list.PotListActivity"
+            android:exported="false" />
+        <activity
             android:name=".feature.auth.login.LoginActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
