@@ -30,17 +30,30 @@ import com.kakao.vectormap.label.LabelStyle
 import com.kakao.vectormap.label.LabelStyles
 import java.security.MessageDigest
 
+/**
+ * EX-01 홈 화면 (지도 + 방 카드 목록)
+ */
 class PotMainActivity : ComponentActivity() {
 
     private lateinit var binding: ActivityPotMainBinding
     private var kakaoMap: KakaoMap? = null                      // 지도가 준비되면 여기 들어옴
     private var pots: List<PotSummaryResponse> = emptyList()   // 지금 화면에 보여주는 방 목록
 
-    // 카드를 눌렀을 때: 지도를 그 방 위치로 이동 (나중에 방 상세 화면으로 이동)
+    // 카드를 눌렀을 때: 지도를 그 방 위치로 이동 (나중에 EX-04 상세 화면으로 이동)
     private val adapter = PotListAdapter { pot ->
         moveCamera(pot.departureLat, pot.departureLng)
         showToast("${pot.departureName} → ${pot.destinationName} (상세 화면 준비 중)")
     }
+
+    // ===== 핀 크기 설정 (숫자만 바꿔서 조절) =====
+    // 보통 말풍선 크기 (크면 줄이고, 작으면 키우기)
+    private val bubbleScale = 0.55f
+    // 작은 말풍선 크기 (중간 줌일 때)
+    private val smallBubbleScale = 0.38f
+    // 이 줌 레벨부터 "작은 말풍선" (이보다 더 축소하면 점만 보임)
+    private val smallBubbleZoom = 14
+    // 이 줌 레벨부터 "보통 말풍선"
+    private val normalBubbleZoom = 16
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,10 +99,15 @@ class PotMainActivity : ComponentActivity() {
         binding.navWallet.setOnClickListener { showToast("내 지갑 (준비 중)") }
         binding.navMy.setOnClickListener { showToast("마이페이지 (준비 중)") }
 
-        // 9) 지도 시작
+        // 9) 목록 제목을 누르면 전체 목록(EX-02)으로 이동
+        binding.tvNearbyTitle.setOnClickListener {
+            startActivity(android.content.Intent(this, com.example.taxipot.feature.pot.list.PotListActivity::class.java))
+        }
+
+        // 10) 지도 시작
         startMap()
 
-        // 10) 가짜 데이터로 목록 보여주기 (서버 연결 후 이 줄만 바꾸면 됨)
+        // 11) 가짜 데이터로 목록 보여주기 (서버 연결 후 이 줄만 바꾸면 됨)
         showPots(FakePotData.pots.sortedBy { it.departureTime })
     }
 
@@ -115,7 +133,7 @@ class PotMainActivity : ComponentActivity() {
             override fun onMapReady(map: KakaoMap) {
                 Log.d("KakaoMap", "지도 준비 완료!")
                 kakaoMap = map
-                drawMarkers()   // 지도가 준비되면 말풍선 핀 찍기
+                drawMarkers()   // 지도가 준비되면 핀 찍기
 
                 // 핀을 눌렀을 때: 목록에서 그 방으로 스크롤
                 map.setOnLabelClickListener { _, _, label ->
@@ -143,19 +161,9 @@ class PotMainActivity : ComponentActivity() {
     private fun showPots(newPots: List<PotSummaryResponse>) {
         pots = newPots
         adapter.submitList(newPots)
-        binding.tvNearbyTitle.text = "내 주변 모집 중 택시팟 ${newPots.size}"
+        binding.tvNearbyTitle.text = "내 주변 모집 중 택시팟 ${newPots.size}  ›"
         drawMarkers()
     }
-
-    // ===== 핀 크기 설정 (숫자만 바꿔서 조절) =====
-    // 보통 말풍선 크기 (크면 줄이고, 작으면 키우기)
-    private val bubbleScale = 0.55f
-    // 작은 말풍선 크기 (중간 줌일 때)
-    private val smallBubbleScale = 0.38f
-    // 이 줌 레벨부터 "작은 말풍선" (이보다 더 축소하면 점만 보임)
-    private val smallBubbleZoom = 14
-    // 이 줌 레벨부터 "보통 말풍선"
-    private val normalBubbleZoom = 16
 
     // 방마다 출발지 위치에 핀 찍기 (지도 확대 정도에 따라 모양이 자동으로 바뀜)
     private fun drawMarkers() {
@@ -184,7 +192,7 @@ class PotMainActivity : ComponentActivity() {
         }
     }
 
-    // 많이 축소했을 때 보이는 작은 점 (흰 테두리 + 베이지 원 + 진한 테두리)
+    // 많이 축소했을 때 보이는 작은 점 (베이지 원 + 진한 테두리)
     private fun createDotBitmap(): Bitmap {
         val size = (dp(14f) * bubbleScale).toInt().coerceAtLeast(8)
         val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
@@ -245,53 +253,6 @@ class PotMainActivity : ComponentActivity() {
             strokeWidth = s(1.5f).coerceAtLeast(1f)
         }
         canvas.drawCircle(padH + icon / 2, height / 2f, icon / 2 - s(1f), pin)
-
-        // 글자
-        val baseline = height / 2f - (fm.ascent + fm.descent) / 2
-        canvas.drawText(text, padH + icon + gap, baseline, textPaint)
-
-        return bitmap
-    }
-
-    // 말풍선 핀 이미지를 코드로 그리기 (베이지 배경 + 테두리 + 동그라미 + 글자)
-    private fun createBubbleBitmap(text: String): Bitmap {
-        val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = PotColors.TEXT
-            textSize = dp(12f)
-            isFakeBoldText = true
-        }
-        val padH = dp(8f)
-        val padV = dp(6f)
-        val icon = dp(10f)
-        val gap = dp(5f)
-        val fm = textPaint.fontMetrics
-        val textHeight = fm.descent - fm.ascent
-
-        val width = (padH + icon + gap + textPaint.measureText(text) + padH).toInt()
-        val height = (padV + textHeight + padV).toInt()
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        val rect = RectF(1f, 1f, width - 1f, height - 1f)
-
-        // 배경
-        val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = PotColors.ACCENT }
-        canvas.drawRoundRect(rect, dp(6f), dp(6f), fill)
-
-        // 테두리
-        val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = PotColors.LINE
-            style = Paint.Style.STROKE
-            strokeWidth = dp(1f)
-        }
-        canvas.drawRoundRect(rect, dp(6f), dp(6f), stroke)
-
-        // 왼쪽 작은 동그라미 (위치 표시)
-        val pin = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = PotColors.TEXT
-            style = Paint.Style.STROKE
-            strokeWidth = dp(1.5f)
-        }
-        canvas.drawCircle(padH + icon / 2, height / 2f, icon / 2 - dp(1f), pin)
 
         // 글자
         val baseline = height / 2f - (fm.ascent + fm.descent) / 2
