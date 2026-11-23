@@ -1,6 +1,10 @@
 package com.example.taxipot.feature.pot.main
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.RectF
 import android.graphics.drawable.GradientDrawable
 
 /**
@@ -28,3 +32,51 @@ fun Context.roundedBg(fillColor: Int, radiusDp: Float, strokeColor: Int? = null)
             setStroke(dp(1f).toInt().coerceAtLeast(1), strokeColor)
         }
     }
+
+/**
+ * 지도 말풍선 이미지 그리기 (베이지 배경 + 테두리 + 동그라미 + 글자)
+ * scale: 크기 비율 (카카오맵이 그림을 확대해서 그리므로 1보다 작게)
+ */
+fun Context.bubbleBitmap(text: String, scale: Float): Bitmap {
+    fun s(value: Float) = dp(value) * scale
+
+    val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = PotColors.TEXT
+        textSize = s(12f)
+        isFakeBoldText = true
+    }
+    val padH = s(8f)
+    val padV = s(6f)
+    val icon = s(10f)
+    val gap = s(5f)
+    val fm = textPaint.fontMetrics
+    val textHeight = fm.descent - fm.ascent
+
+    val width = (padH + icon + gap + textPaint.measureText(text) + padH).toInt()
+    val height = (padV + textHeight + padV).toInt()
+    val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+    val rect = RectF(1f, 1f, width - 1f, height - 1f)
+
+    val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = PotColors.ACCENT }
+    canvas.drawRoundRect(rect, s(6f), s(6f), fill)
+
+    val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = PotColors.LINE
+        style = Paint.Style.STROKE
+        strokeWidth = s(1f).coerceAtLeast(1f)
+    }
+    canvas.drawRoundRect(rect, s(6f), s(6f), stroke)
+
+    val pin = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = PotColors.TEXT
+        style = Paint.Style.STROKE
+        strokeWidth = s(1.5f).coerceAtLeast(1f)
+    }
+    canvas.drawCircle(padH + icon / 2, height / 2f, icon / 2 - s(1f), pin)
+
+    val baseline = height / 2f - (fm.ascent + fm.descent) / 2
+    canvas.drawText(text, padH + icon + gap, baseline, textPaint)
+
+    return bitmap
+}

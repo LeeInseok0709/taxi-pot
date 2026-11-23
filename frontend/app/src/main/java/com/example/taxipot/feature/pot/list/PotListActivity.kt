@@ -27,9 +27,9 @@ class PotListActivity : ComponentActivity() {
     // 지금 적용된 필터·정렬 조건 (처음엔 기본값)
     private var filter = PotFilter()
 
-    // 카드를 눌렀을 때 (나중에 EX-04 택시팟 상세 화면으로 이동)
+    // 카드를 눌렀을 때: 택시팟 상세(EX-04)로 이동
     private val adapter = PotListAdapter { pot ->
-        showToast("${pot.departureName} → ${pot.destinationName} (상세 화면 준비 중)")
+        startActivity(com.example.taxipot.feature.pot.detail.PotDetailActivity.newIntent(this, pot.id))
     }
 
     // EX-03 필터 화면을 열고, "적용"을 누르면 결과를 받아서 목록에 반영

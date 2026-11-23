@@ -39,10 +39,9 @@ class PotMainActivity : ComponentActivity() {
     private var kakaoMap: KakaoMap? = null                      // 지도가 준비되면 여기 들어옴
     private var pots: List<PotSummaryResponse> = emptyList()   // 지금 화면에 보여주는 방 목록
 
-    // 카드를 눌렀을 때: 지도를 그 방 위치로 이동 (나중에 EX-04 상세 화면으로 이동)
+    // 카드를 눌렀을 때: 택시팟 상세(EX-04)로 이동
     private val adapter = PotListAdapter { pot ->
-        moveCamera(pot.departureLat, pot.departureLng)
-        showToast("${pot.departureName} → ${pot.destinationName} (상세 화면 준비 중)")
+        startActivity(com.example.taxipot.feature.pot.detail.PotDetailActivity.newIntent(this, pot.id))
     }
 
     // ===== 핀 크기 설정 (숫자만 바꿔서 조절) =====
