@@ -357,6 +357,22 @@ object PotRepository {
         return ApiResult.Success(Unit)
     }
 
+    // ===== 방 수정 =====
+
+    /** 방 수정 (방장) — 제목·오픈채팅 링크, 바꿀 것만 (null은 그대로) */
+    suspend fun updatePot(potId: Long, title: String?, openChatUrl: String?): ApiResult<PotDetailResponse> {
+        if (!USE_FAKE) {
+            return safeApiCall {
+                api.updatePot(potId, com.example.taxipot.data.remote.dto.pot.PotUpdateRequest(title, openChatUrl))
+            }
+        }
+        val pot = fakeCreated[potId]
+            ?: return ApiResult.Failure(403, "NOT_POT_HOST", "방장만 수정할 수 있습니다.", null)
+        val updated = pot.copy(title = title ?: pot.title, openChatUrl = openChatUrl ?: pot.openChatUrl)
+        fakeCreated[potId] = updated
+        return ApiResult.Success(updated)
+    }
+
     // ===== 실요금 청구 (RD-05) =====
 
     /** 실요금 청구 (방장) — jpeg: 결제내역 사진(JPEG 바이트) */

@@ -148,3 +148,9 @@ data class JoinRequestResponse(
     val status: String,             // REQUESTED (대기 중)
     val requestedAt: String         // 요청 시각
 )
+
+/** 방 수정 요청 — 명세서 PotUpdateRequest (바꿀 항목만, null은 안 보냄) */
+data class PotUpdateRequest(
+    val title: String?,             // 100자 이하
+    val openChatUrl: String?        // 500자 이하
+)
