@@ -156,6 +156,13 @@ class WaitingRoomActivity : ComponentActivity() {
             return
         }
 
+        // 탑승이 시작됐으면 탑승 중 화면으로 (동승자는 실시간으로 자동 이동)
+        if (pot.status == "RUNNING") {
+            startActivity(com.example.taxipot.feature.pot.ride.RideActivity.newIntent(this, pot.id))
+            finish()
+            return
+        }
+
         val isHost = myUserId != null && myUserId == pot.hostId
         val members = pot.members.filter { it.status == "JOINED" || it.status == "BOARDED" }
         val me = members.firstOrNull { it.memberId == myUserId }
