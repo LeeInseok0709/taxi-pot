@@ -1,6 +1,7 @@
 package com.example.taxipot.feature.pot.data
 
 import android.content.Intent
+import com.example.taxipot.data.remote.dto.pot.PotSummaryResponse
 
 /**
  * 필터·정렬 조건 — API 명세서 GET /api/pots 의 조건값과 이름을 맞춤

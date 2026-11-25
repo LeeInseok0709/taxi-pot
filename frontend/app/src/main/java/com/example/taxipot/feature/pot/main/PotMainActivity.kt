@@ -11,6 +11,13 @@ import android.util.Base64
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.launch
+import com.example.taxipot.feature.pot.data.PotFilter
+import com.example.taxipot.feature.pot.list.PotListViewModel
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -18,7 +25,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.taxipot.BuildConfig
 import com.example.taxipot.databinding.ActivityPotMainBinding
 import com.example.taxipot.feature.pot.data.FakePotData
-import com.example.taxipot.feature.pot.data.PotSummaryResponse
+import com.example.taxipot.data.remote.dto.pot.PotSummaryResponse
 import com.kakao.vectormap.KakaoMap
 import com.kakao.vectormap.KakaoMapReadyCallback
 import com.kakao.vectormap.KakaoMapSdk
@@ -38,6 +45,9 @@ class PotMainActivity : ComponentActivity() {
     private lateinit var binding: ActivityPotMainBinding
     private var kakaoMap: KakaoMap? = null                      // 지도가 준비되면 여기 들어옴
     private var pots: List<PotSummaryResponse> = emptyList()   // 지금 화면에 보여주는 방 목록
+
+    // 택시팟 목록 불러오기 담당 (목록 화면과 같이 사용)
+    private val viewModel: PotListViewModel by viewModels()
 
     // 카드를 눌렀을 때: 택시팟 상세(EX-04)로 이동
     private val adapter = PotListAdapter { pot ->
@@ -115,8 +125,24 @@ class PotMainActivity : ComponentActivity() {
         // 10) 지도 시작
         startMap()
 
-        // 11) 가짜 데이터로 목록 보여주기 (서버 연결 후 이 줄만 바꾸면 됨)
-        showPots(FakePotData.pots.sortedBy { it.departureTime })
+        // 11) 택시팟 목록 불러오기 (기준 위치: 백석대학교)
+        observeViewModel()
+        viewModel.load(PotFilter(), FakePotData.BAEKSEOK_LAT, FakePotData.BAEKSEOK_LNG)
+    }
+
+    // 불러온 결과가 오면 목록·핀 다시 그리기, 실패하면 메시지
+    private fun observeViewModel() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    showPots(state.pots)
+                    state.errorMessage?.let {
+                        showToast(it)
+                        viewModel.errorShown()
+                    }
+                }
+            }
+        }
     }
 
     // 둥근 배경과 테두리 입히기 (색은 PotStyle.kt 에서 관리)

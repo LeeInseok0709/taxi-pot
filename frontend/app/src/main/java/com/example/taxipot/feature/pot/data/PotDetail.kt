@@ -1,58 +1,7 @@
 package com.example.taxipot.feature.pot.data
 
-/**
- * 참여자 1명 — API 명세서 PotMemberResponse 와 같은 모양
- */
-data class PotMemberResponse(
-    val id: Long,               // 참여 고유번호
-    val memberId: Long,         // 회원 번호
-    val nickname: String,       // 닉네임
-    val ratingAvg: Double,      // 평점
-    val role: String,           // HOST(방장) / GUEST(동승자)
-    val preferredSeat: String,  // FRONT / BACK_LEFT / BACK_MID / BACK_RIGHT / NONE
-    val status: String,         // JOINED / BOARDED / CANCELED / NO_SHOW / KICKED / REQUESTED / REJECTED
-    val arrivedAt: String?,     // 도착 확인 시각 (없으면 null)
-    val joinedAt: String,       // 참여 시각
-    val canceledAt: String?     // 취소·퇴장 시각 (없으면 null)
-)
-
-/**
- * 택시팟 상세 — API 명세서 PotDetailResponse 와 같은 모양
- * (GET /api/pots/{potId} 응답)
- */
-data class PotDetailResponse(
-    val id: Long,
-    val title: String,
-    val hostId: Long,
-    val hostNickname: String,
-    val hostRatingAvg: Double,
-    val departureName: String,
-    val departureLat: Double,
-    val departureLng: Double,
-    val destinationName: String,
-    val destinationLat: Double,
-    val destinationLng: Double,
-    val departureTime: String,      // 출발 시각
-    val arrivalDeadline: String,    // 집결 기한 겸 참여 마감 (출발 5분 전)
-    val cancelDeadline: String,     // 참여 취소 마감 (출발 10분 전)
-    val maxMembers: Int,
-    val currentMembers: Int,
-    val genderOption: String,       // ALL / MALE / FEMALE
-    val expectedFare: Int,
-    val holdAmount: Int,            // 1인 예치액
-    val actualFare: Int?,           // 실제 요금 (정산 전 null)
-    val status: String,             // RECRUITING / CLOSED / RUNNING / COMPLETED / CANCELED
-    val hasCanceled: Boolean,       // 결원 발생 여부
-    val openChatUrl: String?,
-    val isJoined: Boolean,          // 내가 참여 중인지
-    val myMemberStatus: String?,    // 내 참여 상태 (참여 이력 없으면 null)
-    val hasReceipt: Boolean,
-    val fareClaimStatus: String,    // NONE / PENDING / APPROVED / REJECTED / OVERDUE
-    val fareRejectReason: String?,
-    val members: List<PotMemberResponse>,
-    val createdAt: String,
-    val updatedAt: String
-)
+import com.example.taxipot.data.remote.dto.pot.PotDetailResponse
+import com.example.taxipot.data.remote.dto.pot.PotMemberResponse
 
 /** "2026-11-23T21:30:00+09:00" → "21:30" */
 fun clockOf(time: String): String =

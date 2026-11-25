@@ -6,13 +6,17 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.launch
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.taxipot.BuildConfig
 import com.example.taxipot.databinding.ActivityPotDetailBinding
-import com.example.taxipot.feature.pot.data.FakePotDetailData
-import com.example.taxipot.feature.pot.data.PotDetailResponse
+import com.example.taxipot.data.remote.dto.pot.PotDetailResponse
 import com.example.taxipot.feature.pot.data.clockOf
 import com.example.taxipot.feature.pot.main.PotColors
 import com.example.taxipot.feature.pot.main.bubbleBitmap
@@ -35,6 +39,12 @@ class PotDetailActivity : ComponentActivity() {
     private lateinit var binding: ActivityPotDetailBinding
     private lateinit var pot: PotDetailResponse
 
+    // 상세 불러오기 담당
+    private val viewModel: PotDetailViewModel by viewModels()
+
+    // 지도는 처음 한 번만 켜기
+    private var mapStarted = false
+
     companion object {
         private const val EXTRA_POT_ID = "pot_id"
 
@@ -49,15 +59,8 @@ class PotDetailActivity : ComponentActivity() {
         // 1) 카카오맵 준비
         KakaoMapSdk.init(this, BuildConfig.KAKAO_NATIVE_APP_KEY)
 
-        // 2) 받은 방 번호로 상세 정보 찾기 (지금은 가짜 데이터, 나중에 GET /api/pots/{potId})
+        // 2) 받은 방 번호 (불러오기는 7번에서)
         val potId = intent.getLongExtra(EXTRA_POT_ID, -1L)
-        val found = FakePotDetailData.find(potId)
-        if (found == null) {
-            showToast("택시팟 정보를 찾을 수 없어요")
-            finish()
-            return
-        }
-        pot = found
 
         // 3) XML 화면 붙이기
         binding = ActivityPotDetailBinding.inflate(layoutInflater)
@@ -83,9 +86,36 @@ class PotDetailActivity : ComponentActivity() {
         // 6) 버튼
         binding.btnBack.setOnClickListener { finish() }
 
-        // 7) 내용 채우기 + 지도
-        showDetail()
-        startMap()
+        // 7) 상세 불러오기 → 도착하면 내용 채우기 + 지도
+        observeViewModel()
+        if (viewModel.uiState.value.pot == null) viewModel.load(potId)
+    }
+
+    // 불러온 결과가 오면 화면 채우기, 실패하면 메시지 보여주고 닫기
+    private fun observeViewModel() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    if (state.errorMessage != null) {
+                        showToast(state.errorMessage)
+                        finish()
+                        return@collect
+                    }
+                    val loaded = state.pot ?: return@collect
+                    pot = loaded
+                    showDetail()
+
+                    if (!mapStarted) {
+                        mapStarted = true
+                        startMap()
+                        // 화면이 이미 켜진 뒤에 지도를 시작했으면 바로 이어서 켜기
+                        if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                            binding.mapView.resume()
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // 상세 정보를 화면에 채우기
