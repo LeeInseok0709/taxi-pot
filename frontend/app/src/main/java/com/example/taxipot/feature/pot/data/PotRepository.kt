@@ -6,6 +6,8 @@ import com.example.taxipot.core.network.safeApiCall
 import com.example.taxipot.data.remote.api.PotApi
 import com.example.taxipot.data.remote.dto.pot.PotCreateRequest
 import com.example.taxipot.data.remote.dto.pot.PotDetailResponse
+import com.example.taxipot.data.remote.dto.pot.PotJoinRequest
+import com.example.taxipot.data.remote.dto.pot.PotJoinResponse
 import com.example.taxipot.data.remote.dto.pot.PotSummaryResponse
 
 /**
@@ -95,6 +97,31 @@ object PotRepository {
         )
     }
 
+    /** 택시팟 참여 (희망 좌석과 함께) */
+    suspend fun join(potId: Long, preferredSeat: String): ApiResult<PotJoinResponse> {
+        if (USE_FAKE) return fakeJoin(potId)
+        return safeApiCall { api.join(potId, PotJoinRequest(preferredSeat)) }
+    }
+
+    // 가짜 참여: 예치액이 가짜 잔액보다 크면 잔액 부족(서버와 같은 detail 모양), 아니면 성공
+    private fun fakeJoin(potId: Long): ApiResult<PotJoinResponse> {
+        val pot = FakePotDetailData.find(potId)
+            ?: return ApiResult.Failure(404, "POT_NOT_FOUND", "택시팟을 찾을 수 없어요.", null)
+        val balance = FakePotData.FAKE_BALANCE
+        if (pot.holdAmount > balance) {
+            return ApiResult.Failure(
+                409, "INSUFFICIENT_BALANCE", "지갑 잔액이 부족합니다.",
+                mapOf(
+                    "requiredAmount" to pot.holdAmount.toDouble(),
+                    "balance" to balance.toDouble(),
+                    "shortageAmount" to (pot.holdAmount - balance).toDouble()
+                )
+            )
+        }
+        val status = if (pot.currentMembers + 1 >= pot.maxMembers) "CLOSED" else "RECRUITING"
+        return ApiResult.Success(PotJoinResponse(potId, null, pot.holdAmount, balance - pot.holdAmount, status))
+    }
+
     /** 실패 결과를 화면에 보여줄 문장으로 바꾸기 */
     fun errorMessage(result: ApiResult<*>): String = when (result) {
         is ApiResult.Failure -> when (result.code) {
@@ -105,7 +132,12 @@ object PotRepository {
             "ACTIVE_POT_EXISTS" -> "이미 참여 중인 택시팟이 있어요."
             "NOT_VERIFIED" -> "학생 인증을 먼저 완료해 주세요."
             "SUSPENDED_USER" -> "이용 정지 중이라 방을 만들 수 없어요."
-            "GENDER_RESTRICTED" -> "내 성별로는 고를 수 없는 성별 옵션이에요."
+            "GENDER_RESTRICTED" -> "성별 제한 때문에 할 수 없어요."
+            "POT_FULL" -> "모집 인원이 모두 찼어요."
+            "JOIN_DEADLINE_PASSED" -> "참여 마감 시각이 지났어요. 출발지 근처에서 입장 요청을 보내 주세요."
+            "ALREADY_JOINED" -> "이미 참여한 택시팟이에요."
+            "KICKED_FROM_POT" -> "내보내진 방에는 다시 참여할 수 없어요."
+            "INVALID_POT_STATUS" -> "지금은 할 수 없는 상태의 택시팟이에요."
             else -> result.message
         }
         is ApiResult.NetworkError -> "서버에 연결할 수 없습니다. 인터넷 연결을 확인해 주세요."
