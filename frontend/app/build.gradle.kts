@@ -26,6 +26,10 @@ android {
             "\"${localProps.getProperty("KAKAO_NATIVE_APP_KEY")}\""
         )
         buildConfigField(
+            "String", "KAKAO_REST_API_KEY",
+            "\"${localProps.getProperty("KAKAO_REST_API_KEY", "")}\""
+        )
+        buildConfigField(
             "String", "BASE_URL",
             "\"${localProps.getProperty("BASE_URL", "http://10.0.2.2:8080/")}\""
         )

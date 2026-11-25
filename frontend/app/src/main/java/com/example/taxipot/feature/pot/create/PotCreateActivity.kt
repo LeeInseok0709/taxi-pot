@@ -9,10 +9,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
+import com.example.taxipot.core.network.ApiResult
 import com.example.taxipot.data.remote.dto.pot.PotCreateRequest
 import com.example.taxipot.databinding.ActivityPotCreateBinding
 import com.example.taxipot.feature.pot.data.FakePotData
 import com.example.taxipot.feature.pot.data.Place
+import com.example.taxipot.feature.pot.data.PlaceRepository
 import com.example.taxipot.feature.pot.data.PotRepository
 import com.example.taxipot.feature.pot.main.PotColors
 import com.example.taxipot.feature.pot.main.roundedBg
@@ -20,6 +23,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
+import kotlinx.coroutines.launch
 
 /**
  * CR-01 방 만들기 (입력 화면)
@@ -52,6 +56,7 @@ class PotCreateActivity : ComponentActivity() {
                 PlacePickActivity.placeFrom(result.data)?.let {
                     departure = it
                     render()
+                    estimateFareIfReady()
                 }
             }
         }
@@ -63,6 +68,7 @@ class PotCreateActivity : ComponentActivity() {
                 PlacePickActivity.placeFrom(result.data)?.let {
                     destination = it
                     render()
+                    estimateFareIfReady()
                 }
             }
         }
@@ -77,8 +83,6 @@ class PotCreateActivity : ComponentActivity() {
                 }
             }
         }
-
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -187,13 +191,33 @@ class PotCreateActivity : ComponentActivity() {
     // 희망 좌석 고르기 → 좌석 선택 화면 (요금을 넣었으면 예치액도 보여줌)
     private fun pickSeat() {
         val fare = binding.etFare.text.toString().toIntOrNull()
-        val hold = fare?.let { com.example.taxipot.feature.pot.data.PotRepository.holdAmount(it, maxMembers) }
+        val hold = fare?.let { PotRepository.holdAmount(it, maxMembers) }
         seatLauncher.launch(
-            SeatPickActivity.newIntent(
-                this, preferredSeat, hold,
-                com.example.taxipot.feature.pot.data.FakePotData.FAKE_BALANCE
-            )
+            SeatPickActivity.newIntent(this, preferredSeat, hold, FakePotData.FAKE_BALANCE)
         )
+    }
+
+    // 출발지·목적지를 둘 다 골랐으면 카카오 예상 택시 요금을 자동으로 넣기 (직접 고칠 수 있음)
+    private fun estimateFareIfReady() {
+        val dep = departure ?: return
+        val dest = destination ?: return
+
+        binding.tvFareHint.text = "예상 요금 계산 중..."
+        lifecycleScope.launch {
+            when (val result = PlaceRepository.estimateFare(dep, dest)) {
+                is ApiResult.Success -> {
+                    val estimate = result.data
+                    binding.etFare.setText(estimate.fare.toString())
+                    val minutes = (estimate.durationSeconds + 59) / 60
+                    val km = estimate.distanceMeters / 1000.0
+                    binding.tvFareHint.text =
+                        "카카오 예상 요금 · 약 ${minutes}분 · %.1fkm (직접 고칠 수 있어요)".format(km)
+                }
+                is ApiResult.Failure, is ApiResult.NetworkError -> {
+                    binding.tvFareHint.text = "예상 요금을 계산하지 못했어요. 직접 입력해 주세요 (50만 원 이하)"
+                }
+            }
+        }
     }
 
     // "오늘 21:30" / "내일 07:00"

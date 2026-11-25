@@ -13,11 +13,13 @@ import androidx.activity.ComponentActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.taxipot.BuildConfig
+import com.example.taxipot.core.network.ApiResult
 import com.example.taxipot.databinding.ActivityPlacePickBinding
 import com.example.taxipot.feature.pot.data.FakePotData
 import com.example.taxipot.feature.pot.data.Place
-import com.example.taxipot.feature.pot.data.PlacePresets
+import com.example.taxipot.feature.pot.data.PlaceRepository
 import com.example.taxipot.feature.pot.main.PotColors
 import com.example.taxipot.feature.pot.main.dp
 import com.example.taxipot.feature.pot.main.roundedBg
@@ -27,10 +29,12 @@ import com.kakao.vectormap.KakaoMapSdk
 import com.kakao.vectormap.LatLng
 import com.kakao.vectormap.MapLifeCycleCallback
 import com.kakao.vectormap.camera.CameraUpdateFactory
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 /**
  * CR-02 출발지 설정 / CR-03 목적지 설정 (같은 화면을 제목만 바꿔서 사용)
- * 지도 가운데 핀 위치 또는 검색 결과로 장소를 고르고, 고른 장소를 이전 화면으로 돌려줌
+ * 지도 가운데 핀 위치 또는 카카오 장소 검색 결과로 장소를 고르고, 고른 장소를 이전 화면으로 돌려줌
  */
 class PlacePickActivity : ComponentActivity() {
 
@@ -40,6 +44,12 @@ class PlacePickActivity : ComponentActivity() {
     // 지금 고른 위치 (처음엔 백석대학교)
     private var selectedLat = FakePotData.BAEKSEOK_LAT
     private var selectedLng = FakePotData.BAEKSEOK_LNG
+
+    // 핀 위치 이름 찾기 작업 (지도를 빨리 여러 번 움직이면 이전 작업은 취소)
+    private var nameJob: Job? = null
+
+    // 검색 결과를 눌러서 코드로 지도를 옮긴 경우 (그때는 이름을 다시 찾지 않음)
+    private var movedByCode = false
 
     companion object {
         private const val EXTRA_TITLE = "title"
@@ -142,6 +152,10 @@ class PlacePickActivity : ComponentActivity() {
             override fun onMapReady(map: KakaoMap) {
                 kakaoMap = map
                 map.setOnCameraMoveEndListener { _, cameraPosition, _ ->
+                    if (movedByCode) {
+                        movedByCode = false
+                        return@setOnCameraMoveEndListener
+                    }
                     updateSelected(cameraPosition.position.latitude, cameraPosition.position.longitude)
                 }
             }
@@ -152,26 +166,44 @@ class PlacePickActivity : ComponentActivity() {
         })
     }
 
-    // 고른 위치가 바뀌었을 때: 가까운 장소가 있으면 그 이름, 없으면 "지도에서 선택한 위치"
+    // 고른 위치가 바뀌었을 때: 그 위치의 이름 찾기 (자주 쓰는 장소 → 카카오 주소)
     private fun updateSelected(lat: Double, lng: Double) {
         selectedLat = lat
         selectedLng = lng
 
-        val near = PlacePresets.nearest(lat, lng)
-        if (near != null) {
-            binding.etPlaceName.setText(near.name)
-            binding.tvSelectedAddress.text = near.address
-        } else {
-            binding.etPlaceName.setText("지도에서 선택한 위치")
-            binding.tvSelectedAddress.text = "직접 고른 위치 · 위 이름을 눌러 고칠 수 있어요"
+        nameJob?.cancel()
+        binding.tvSelectedAddress.text = "위치 확인 중..."
+        nameJob = lifecycleScope.launch {
+            val place = PlaceRepository.nameAt(lat, lng)
+            if (place != null) {
+                binding.etPlaceName.setText(place.name)
+                binding.tvSelectedAddress.text = place.address
+            } else {
+                binding.etPlaceName.setText("지도에서 선택한 위치")
+                binding.tvSelectedAddress.text = "직접 고른 위치 · 위 이름을 눌러 고칠 수 있어요"
+            }
         }
     }
 
-    // 검색: 검색어에 맞는 장소를 최대 3개 보여주기
+    // 검색: 카카오 장소 검색 (지금 지도 위치 기준), 결과는 최대 3개
     private fun search() {
         hideKeyboard()
-        val results = PlacePresets.search(binding.etSearch.text.toString()).take(3)
+        val query = binding.etSearch.text.toString().trim()
+        if (query.isEmpty()) {
+            showToast("검색어를 입력해 주세요")
+            return
+        }
 
+        lifecycleScope.launch {
+            when (val result = PlaceRepository.search(query, selectedLat, selectedLng)) {
+                is ApiResult.Success -> showResults(result.data.take(3))
+                is ApiResult.Failure, is ApiResult.NetworkError -> showToast(PlaceRepository.errorMessage(result))
+            }
+        }
+    }
+
+    // 검색 결과 그리기
+    private fun showResults(results: List<Place>) {
         binding.resultList.removeAllViews()
         if (results.isEmpty()) {
             binding.resultList.visibility = android.view.View.GONE
@@ -207,6 +239,9 @@ class PlacePickActivity : ComponentActivity() {
             text = "${place.address}  ›"
             setTextColor(PotColors.SUB_TEXT)
             textSize = 11f
+            maxWidth = dp(150f).toInt()
+            maxLines = 1
+            ellipsize = android.text.TextUtils.TruncateAt.START
         })
         return row
     }
@@ -219,11 +254,13 @@ class PlacePickActivity : ComponentActivity() {
 
     // 검색 결과를 눌렀을 때: 그 장소로 지도 이동 + 고른 장소로 설정
     private fun selectPlace(place: Place) {
+        nameJob?.cancel()
         selectedLat = place.lat
         selectedLng = place.lng
         binding.etPlaceName.setText(place.name)
         binding.tvSelectedAddress.text = place.address
         binding.resultList.visibility = android.view.View.GONE
+        movedByCode = kakaoMap != null
         kakaoMap?.moveCamera(CameraUpdateFactory.newCenterPosition(LatLng.from(place.lat, place.lng)))
     }
 
