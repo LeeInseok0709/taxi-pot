@@ -155,20 +155,23 @@ class PotDetailActivity : ComponentActivity() {
                 "${m.nickname}$hostMark · ★${m.ratingAvg}"
             }
 
-        // 참여 버튼: 상황에 따라 글자와 색이 바뀜
+        // 참여 버튼: 상황에 따라 글자와 색이 바뀜 (이미 참여한 방이면 대기실로)
         val canJoin = !pot.isJoined && pot.status == "RECRUITING" && pot.currentMembers < pot.maxMembers
         binding.btnJoin.text = when {
-            pot.isJoined -> "참여 중"
+            pot.isJoined -> "대기실로 이동"
             canJoin -> "참여하기"
             else -> "모집 마감"
         }
-        binding.btnJoin.background = if (canJoin) {
+        binding.btnJoin.background = if (canJoin || pot.isJoined) {
             roundedBg(PotColors.ACCENT, 12f)
         } else {
             roundedBg(PotColors.CARD, 12f, PotColors.LINE)
         }
         binding.btnJoin.setOnClickListener {
-            if (canJoin) startActivity(com.example.taxipot.feature.pot.join.PotJoinActivity.newIntent(this, pot))
+            when {
+                pot.isJoined -> startActivity(com.example.taxipot.feature.pot.room.WaitingRoomActivity.newIntent(this, pot.id))
+                canJoin -> startActivity(com.example.taxipot.feature.pot.join.PotJoinActivity.newIntent(this, pot))
+            }
         }
     }
 

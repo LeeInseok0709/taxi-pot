@@ -25,6 +25,7 @@ import com.example.taxipot.feature.pot.data.FakePotData
 import com.example.taxipot.feature.pot.data.clockOf
 import com.example.taxipot.feature.pot.main.PotColors
 import com.example.taxipot.feature.pot.main.roundedBg
+import com.example.taxipot.feature.pot.room.showActivePotDialog
 import kotlinx.coroutines.launch
 
 /**
@@ -163,6 +164,12 @@ class PotJoinActivity : ComponentActivity() {
                         viewModel.insufficientShown()
                     }
 
+                    // 이미 다른 방에 참여 중 → 그 방으로 가는 안내 창
+                    state.activePotId?.let {
+                        showActivePotDialog(it)
+                        viewModel.activePotShown()
+                    }
+
                     val joined = state.joined
                     if (joined != null && !moved) {
                         moved = true
@@ -197,6 +204,7 @@ class PotJoinActivity : ComponentActivity() {
         dialogBinding.tvShortage.text = "%,dP".format(info.shortage)
 
         // 버튼
+        dialogBinding.btnClose.setOnClickListener { dialog.dismiss() }
         dialogBinding.btnCharge.setOnClickListener {
             dialog.dismiss()
             openWalletCharge()

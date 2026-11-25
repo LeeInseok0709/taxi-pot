@@ -18,7 +18,9 @@ data class PotCreateUiState(
     /** 만들어진 방 (성공하면 값이 들어옴) */
     val created: PotDetailResponse? = null,
     /** 한 번 보여주고 지울 에러 문장 */
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    /** 이미 다른 방에 참여 중이면 그 방 번호 (안내 창에서 그 방으로 이동) */
+    val activePotId: Long? = null
 )
 
 /** 방 만들기 (CR-04 → POST /api/pots) */
@@ -29,15 +31,23 @@ class PotCreateViewModel : ViewModel() {
 
     fun create(request: PotCreateRequest) {
         if (_uiState.value.isLoading) return   // 버튼 여러 번 눌러도 한 번만
-        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        _uiState.update { it.copy(isLoading = true, errorMessage = null, activePotId = null) }
 
         viewModelScope.launch {
             when (val result = PotRepository.createPot(request)) {
                 is ApiResult.Success -> _uiState.update {
                     it.copy(isLoading = false, created = result.data)
                 }
-                is ApiResult.Failure, is ApiResult.NetworkError -> _uiState.update {
-                    it.copy(isLoading = false, errorMessage = PotRepository.errorMessage(result))
+                is ApiResult.Failure, is ApiResult.NetworkError -> {
+                    // 이미 다른 방에 참여 중이면 문장 대신 안내 창 (그 방으로 가는 버튼)
+                    val activePotId = PotRepository.activePotIdOf(result)
+                    _uiState.update {
+                        if (activePotId != null) {
+                            it.copy(isLoading = false, activePotId = activePotId)
+                        } else {
+                            it.copy(isLoading = false, errorMessage = PotRepository.errorMessage(result))
+                        }
+                    }
                 }
             }
         }
@@ -45,4 +55,7 @@ class PotCreateViewModel : ViewModel() {
 
     /** 에러 문장을 보여준 뒤 지우기 */
     fun messageShown() = _uiState.update { it.copy(errorMessage = null) }
+
+    /** 참여 중인 방 안내 창을 띄운 뒤 지우기 */
+    fun activePotShown() = _uiState.update { it.copy(activePotId = null) }
 }

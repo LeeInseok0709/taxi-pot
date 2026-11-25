@@ -19,10 +19,11 @@ import com.example.taxipot.databinding.ActivityPotCreateConfirmBinding
 import com.example.taxipot.feature.pot.data.FakePotData
 import com.example.taxipot.feature.pot.data.PotRepository
 import com.example.taxipot.feature.pot.data.clockOf
-import com.example.taxipot.feature.pot.detail.PotDetailActivity
 import com.example.taxipot.feature.pot.main.PotColors
 import com.example.taxipot.feature.pot.main.PotMainActivity
 import com.example.taxipot.feature.pot.main.roundedBg
+import com.example.taxipot.feature.pot.room.WaitingRoomActivity
+import com.example.taxipot.feature.pot.room.showActivePotDialog
 import kotlinx.coroutines.launch
 
 /**
@@ -134,6 +135,12 @@ class PotCreateConfirmActivity : ComponentActivity() {
                         viewModel.messageShown()
                     }
 
+                    // 이미 다른 방에 참여 중 → 그 방으로 가는 안내 창
+                    state.activePotId?.let {
+                        showActivePotDialog(it)
+                        viewModel.activePotShown()
+                    }
+
                     val created = state.created
                     if (created != null && !moved) {
                         moved = true
@@ -144,18 +151,14 @@ class PotCreateConfirmActivity : ComponentActivity() {
         }
     }
 
-    // 방이 만들어지면: 방 만들기 화면들을 닫고 홈으로 (실제 서버면 만든 방 상세까지)
+    // 방이 만들어지면: 방 만들기 화면들을 닫고 (홈만 남기고) 대기실(RD-01)로
     private fun goNext(created: PotDetailResponse) {
         showToast("방이 만들어졌어요! 예치금 %,dP".format(created.holdAmount))
 
         val home = Intent(this, PotMainActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         startActivity(home)
-
-        // 가짜 데이터일 때는 만든 방 상세가 없어서 홈까지만 (대기실 RD-01이 생기면 그쪽으로 변경)
-        if (!PotRepository.USE_FAKE) {
-            startActivity(PotDetailActivity.newIntent(this, created.id))
-        }
+        startActivity(WaitingRoomActivity.newIntent(this, created.id))
         finish()
     }
 
