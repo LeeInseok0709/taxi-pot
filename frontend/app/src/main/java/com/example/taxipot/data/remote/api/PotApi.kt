@@ -1,14 +1,17 @@
 package com.example.taxipot.data.remote.api
 
 import com.example.taxipot.data.remote.dto.common.PageResponse
+import com.example.taxipot.data.remote.dto.pot.PotCreateRequest
 import com.example.taxipot.data.remote.dto.pot.PotDetailResponse
 import com.example.taxipot.data.remote.dto.pot.PotSummaryResponse
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-/** 택시팟 조회 API (로그인 필요 → 토큰 자동 첨부) */
+/** 택시팟 API (로그인 필요 → 토큰 자동 첨부) */
 interface PotApi {
 
     /**
@@ -34,4 +37,8 @@ interface PotApi {
     /** 택시팟 상세 (GET /api/pots/{potId}) */
     @GET("api/pots/{potId}")
     suspend fun getPot(@Path("potId") potId: Long): Response<PotDetailResponse>
+
+    /** 방 만들기 (POST /api/pots) — 성공하면 만든 방 상세가 옴, 방장 예치금도 이때 빠짐 */
+    @POST("api/pots")
+    suspend fun createPot(@Body request: PotCreateRequest): Response<PotDetailResponse>
 }

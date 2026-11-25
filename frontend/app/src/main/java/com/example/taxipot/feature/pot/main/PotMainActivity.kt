@@ -113,7 +113,9 @@ class PotMainActivity : ComponentActivity() {
         binding.btnMyLocation.setOnClickListener { onMyLocationClick() }
         binding.btnBell.setOnClickListener { showToast("알림 (준비 중)") }
         binding.tvSearch.setOnClickListener { showToast("장소 검색 (준비 중)") }
-        binding.btnCreatePot.setOnClickListener { showToast("방 만들기 (준비 중)") }
+        binding.btnCreatePot.setOnClickListener {
+            startActivity(android.content.Intent(this, com.example.taxipot.feature.pot.create.PotCreateActivity::class.java))
+        }
         binding.navWallet.setOnClickListener { showToast("내 지갑 (준비 중)") }
         binding.navMy.setOnClickListener { showToast("마이페이지 (준비 중)") }
 
