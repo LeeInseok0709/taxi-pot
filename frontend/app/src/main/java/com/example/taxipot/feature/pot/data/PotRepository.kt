@@ -4,6 +4,8 @@ import com.example.taxipot.core.network.ApiClient
 import com.example.taxipot.core.network.ApiResult
 import com.example.taxipot.core.network.safeApiCall
 import com.example.taxipot.data.remote.api.PotApi
+import com.example.taxipot.data.remote.dto.pot.JoinRequestCreateRequest
+import com.example.taxipot.data.remote.dto.pot.JoinRequestResponse
 import com.example.taxipot.data.remote.dto.pot.PotArrivalRequest
 import com.example.taxipot.data.remote.dto.pot.PotArrivalResponse
 import com.example.taxipot.data.remote.dto.pot.PotCreateRequest
@@ -12,6 +14,10 @@ import com.example.taxipot.data.remote.dto.pot.PotJoinRequest
 import com.example.taxipot.data.remote.dto.pot.PotJoinResponse
 import com.example.taxipot.data.remote.dto.pot.PotMemberResponse
 import com.example.taxipot.data.remote.dto.pot.PotSummaryResponse
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 /**
  * 택시팟 데이터 창구
@@ -40,6 +46,8 @@ object PotRepository {
     private val fakeRemoved = mutableSetOf<Pair<Long, Long>>()           // (방, 회원) 내보냄·참여 취소
     private val fakeStatus = mutableMapOf<Long, String>()                // 방 상태 변경 (RUNNING, CANCELED)
     private var fakeNextId = 900L
+    private val fakeRequested = mutableMapOf<Long, String>()            // 내가 입장 요청한 방 → 고른 좌석
+    private val fakeRequestHandled = mutableSetOf<Long>()               // 가짜 요청자(늦은새)를 수락·거절한 방
 
     /** 1인 예치액 = floor(예상 요금 × 1.2 ÷ 최대 인원) + 1,000 (명세서 공식) */
     fun holdAmount(expectedFare: Int, maxMembers: Int): Int =
@@ -151,7 +159,11 @@ object PotRepository {
             currentMembers = members.size,
             status = status,
             isJoined = base.isJoined || potId in fakeJoinedSeat,
-            myMemberStatus = if (base.isJoined || potId in fakeJoinedSeat) "JOINED" else null
+            myMemberStatus = when {
+                base.isJoined || potId in fakeJoinedSeat -> "JOINED"
+                potId in fakeRequested -> "REQUESTED"
+                else -> null
+            }
         )
     }
 
@@ -274,6 +286,83 @@ object PotRepository {
         return ApiResult.Success(Unit)
     }
 
+    // ===== 입장 요청 (RD-03) =====
+
+    /** 입장 요청 보내기 (참여 마감 후, 출발지 50m 안의 내 위치와 함께) */
+    suspend fun requestJoin(potId: Long, seat: String, lat: Double, lng: Double): ApiResult<JoinRequestResponse> {
+        if (!USE_FAKE) return safeApiCall { api.requestJoin(potId, JoinRequestCreateRequest(lat, lng, seat)) }
+
+        fakeActivePotId?.let { return activePotExists(it) }
+        if (potId in fakeRequested) {
+            return ApiResult.Failure(409, "ALREADY_REQUESTED", "이미 입장 요청을 보냈습니다.", null)
+        }
+        fakeRequested[potId] = seat
+        return ApiResult.Success(JoinRequestResponse(potId, FAKE_MY_ID, "나", 5.0, seat, "REQUESTED", fakeNow()))
+    }
+
+    /** 내 입장 요청 철회 (예치 전이라 환불 없음) */
+    suspend fun withdrawJoinRequest(potId: Long): ApiResult<Unit> {
+        if (!USE_FAKE) return safeApiCall { api.withdrawJoinRequest(potId) }
+
+        if (fakeRequested.remove(potId) == null) {
+            return ApiResult.Failure(409, "JOIN_REQUEST_NOT_FOUND", "대기 중인 입장 요청이 없습니다.", null)
+        }
+        return ApiResult.Success(Unit)
+    }
+
+    /** 입장 요청 대기 목록 (방장) */
+    suspend fun getJoinRequests(potId: Long): ApiResult<List<JoinRequestResponse>> {
+        if (!USE_FAKE) return safeApiCall { api.getJoinRequests(potId) }
+
+        // 가짜: 내가 만든 방에는 요청자 1명(늦은새)이 기다리는 것으로 보여줌
+        val pot = fakeCreated[potId]
+        if (pot == null || potId in fakeRequestHandled || fakeStatus[potId] != null) {
+            return ApiResult.Success(emptyList())
+        }
+        return ApiResult.Success(
+            listOf(JoinRequestResponse(potId, FAKE_REQUESTER_ID, "늦은새", 5.8, "FRONT", "REQUESTED", fakeNow()))
+        )
+    }
+
+    /** 입장 요청 수락 (방장) — 요청자 예치 + 바로 도착 처리 */
+    suspend fun acceptJoinRequest(potId: Long, userId: Long): ApiResult<PotJoinResponse> {
+        if (!USE_FAKE) return safeApiCall { api.acceptJoinRequest(potId, userId) }
+
+        val pot = fakeCreated[potId]
+        if (pot == null || potId in fakeRequestHandled) {
+            return ApiResult.Failure(409, "JOIN_REQUEST_NOT_FOUND", "대기 중인 입장 요청이 없습니다.", null)
+        }
+        fakeRequestHandled.add(potId)
+        val now = fakeNow()
+        val member = PotMemberResponse(
+            id = potId * 10 + 3, memberId = userId, nickname = "늦은새", ratingAvg = 5.8, role = "GUEST",
+            preferredSeat = "FRONT", status = "JOINED", arrivedAt = now, joinedAt = now, canceledAt = null
+        )
+        fakeCreated[potId] = pot.copy(members = pot.members + member)
+        fakeArrived.add(potId to userId)   // 요청할 때 50m 안이었으므로 도착으로 봄
+        return ApiResult.Success(PotJoinResponse(potId, member, pot.holdAmount, 0, "RECRUITING"))
+    }
+
+    /** 입장 요청 거절 (방장) — 거절된 사람은 같은 방에 다시 요청할 수 없음 */
+    suspend fun rejectJoinRequest(potId: Long, userId: Long): ApiResult<Unit> {
+        if (!USE_FAKE) return safeApiCall { api.rejectJoinRequest(potId, userId) }
+
+        if (fakeCreated[potId] == null || potId in fakeRequestHandled) {
+            return ApiResult.Failure(409, "JOIN_REQUEST_NOT_FOUND", "대기 중인 입장 요청이 없습니다.", null)
+        }
+        fakeRequestHandled.add(potId)
+        return ApiResult.Success(Unit)
+    }
+
+    /** 가짜 요청자(늦은새) 회원 번호 */
+    private const val FAKE_REQUESTER_ID = 903L
+
+    // 지금 시각 "2026-11-25T21:25:00+09:00" (가짜 데이터용)
+    private fun fakeNow(): String =
+        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.KOREA)
+            .apply { timeZone = TimeZone.getTimeZone("Asia/Seoul") }
+            .format(Date()) + "+09:00"
+
     /** 실패 결과를 화면에 보여줄 문장으로 바꾸기 */
     fun errorMessage(result: ApiResult<*>): String = when (result) {
         is ApiResult.Failure -> when (result.code) {
@@ -290,7 +379,7 @@ object PotRepository {
             "ALREADY_JOINED" -> "이미 참여한 택시팟이에요."
             "KICKED_FROM_POT" -> "내보내진 방에는 다시 참여할 수 없어요."
             "INVALID_POT_STATUS" -> "지금은 할 수 없는 상태의 택시팟이에요."
-            "OUT_OF_ARRIVAL_RANGE" -> "출발지 50m 안에서만 도착 확인을 할 수 있어요."
+            "OUT_OF_ARRIVAL_RANGE" -> "출발지 50m 안에서만 할 수 있어요. 출발지 가까이 가서 다시 시도해 주세요."
             "ARRIVAL_DEADLINE_PASSED" -> "집결 기한이 지나 도착 확인을 할 수 없어요."
             "ALREADY_ARRIVED" -> "이미 도착 확인을 했어요."
             "NOT_ALL_ARRIVED" -> "아직 도착하지 않은 참여자가 있어요. 전원 도착해야 탑승을 시작할 수 있어요."
@@ -300,6 +389,10 @@ object PotRepository {
             "HOST_CANNOT_LEAVE" -> "방장은 참여 취소 대신 방 취소를 해 주세요."
             "NOT_POT_HOST" -> "방장만 할 수 있어요."
             "NOT_POT_MEMBER" -> "이 택시팟의 참여자가 아니에요."
+            "JOIN_REQUEST_NOT_AVAILABLE" -> "아직 참여 마감 전이에요. 일반 참여로 들어가 주세요."
+            "ALREADY_REQUESTED" -> "이미 입장 요청을 보냈어요. 방장의 수락을 기다려 주세요."
+            "JOIN_REQUEST_REJECTED" -> "방장이 입장 요청을 거절한 방이에요. 다시 요청할 수 없어요."
+            "JOIN_REQUEST_NOT_FOUND" -> "대기 중인 입장 요청이 없어요."
             else -> result.message
         }
         is ApiResult.NetworkError -> "서버에 연결할 수 없습니다. 인터넷 연결을 확인해 주세요."

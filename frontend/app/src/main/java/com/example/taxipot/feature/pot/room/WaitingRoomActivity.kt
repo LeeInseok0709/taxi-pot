@@ -114,7 +114,7 @@ class WaitingRoomActivity : ComponentActivity() {
         binding.btnChat.setOnClickListener {
             startActivity(ChatActivity.newIntent(this, intent.getLongExtra(EXTRA_POT_ID, -1L)))
         }
-        binding.btnJoinRequests.setOnClickListener { showToast("입장 요청(RD-03)은 다음 단계에서 연결돼요") }
+        binding.btnJoinRequests.setOnClickListener { startActivity(JoinRequestActivity.newIntent(this, intent.getLongExtra(EXTRA_POT_ID, -1L))) }
         binding.btnCancel.setOnClickListener { confirmCancel() }
         binding.btnArrive.setOnClickListener { onArriveClick() }
         binding.btnStart.setOnClickListener { viewModel.start() }
@@ -140,6 +140,8 @@ class WaitingRoomActivity : ComponentActivity() {
                     }
                     val pot = state.pot ?: return@collect
                     render(pot, state.myUserId, state.actionLoading)
+                    binding.btnJoinRequests.text = if (state.joinRequestCount > 0) "입장 요청 (${state.joinRequestCount})" else "입장 요청"
+                    binding.btnJoinRequests.background = roundedBg(if (state.joinRequestCount > 0) PotColors.ACCENT else PotColors.CARD, 10f, PotColors.LINE)
                 }
             }
         }

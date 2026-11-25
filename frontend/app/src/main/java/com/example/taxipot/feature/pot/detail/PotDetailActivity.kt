@@ -1,5 +1,6 @@
 package com.example.taxipot.feature.pot.detail
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -10,7 +11,10 @@ import androidx.activity.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -31,8 +35,9 @@ import com.kakao.vectormap.label.LabelStyle
 import com.kakao.vectormap.label.LabelStyles
 
 /**
- * EX-04 택시팟 상세
+ * EX-04 택시팟 상세 (+ RD-03 입장 요청 버튼)
  * 다른 화면에서 열 때는 PotDetailActivity.newIntent(context, potId) 사용
+ * 아래 버튼: 참여하기 / 입장 요청하기(마감 후) / 수락 대기 중·요청 취소 / 대기실로 이동 / 모집 마감
  */
 class PotDetailActivity : ComponentActivity() {
 
@@ -89,6 +94,9 @@ class PotDetailActivity : ComponentActivity() {
         // 7) 상세 불러오기 → 도착하면 내용 채우기 + 지도
         observeViewModel()
         if (viewModel.uiState.value.pot == null) viewModel.load(potId)
+
+        // 8) 입장 요청 대기 중이면 5초마다 다시 확인 (요청자는 실시간 구독이 안 돼서)
+        startRequestPolling()
     }
 
     // 불러온 결과가 오면 화면 채우기, 실패하면 메시지 보여주고 닫기
@@ -98,6 +106,17 @@ class PotDetailActivity : ComponentActivity() {
                 viewModel.uiState.collect { state ->
                     if (state.errorMessage != null) {
                         showToast(state.errorMessage)
+                        finish()
+                        return@collect
+                    }
+                    state.message?.let {
+                        showToast(it)
+                        viewModel.messageShown()
+                    }
+                    // 입장 요청이 수락됨 → 대기실로
+                    if (state.goWaitingRoom) {
+                        viewModel.waitingRoomOpened()
+                        state.pot?.let { startActivity(com.example.taxipot.feature.pot.room.WaitingRoomActivity.newIntent(this@PotDetailActivity, it.id)) }
                         finish()
                         return@collect
                     }
@@ -155,24 +174,80 @@ class PotDetailActivity : ComponentActivity() {
                 "${m.nickname}$hostMark · ★${m.ratingAvg}"
             }
 
-        // 참여 버튼: 상황에 따라 글자와 색이 바뀜 (이미 참여한 방이면 대기실로)
-        val canJoin = !pot.isJoined && pot.status == "RECRUITING" && pot.currentMembers < pot.maxMembers
-        binding.btnJoin.text = when {
-            pot.isJoined -> "대기실로 이동"
-            canJoin -> "참여하기"
-            else -> "모집 마감"
+        // 아래 버튼: 상황에 따라 글자·색·동작이 바뀜
+        val action = bottomAction()
+        val actionLoading = viewModel.uiState.value.actionLoading
+        binding.btnJoin.text = when (action) {
+            BottomAction.WAITING_ROOM -> "대기실로 이동"
+            BottomAction.JOIN -> "참여하기"
+            BottomAction.REQUEST -> "입장 요청하기 (출발지 50m 안)"
+            BottomAction.WITHDRAW -> if (actionLoading) "취소하는 중..." else "방장 수락 대기 중 · 요청 취소"
+            BottomAction.REJECTED -> "입장 요청이 거절된 방이에요"
+            BottomAction.BLOCKED -> "다시 참여할 수 없는 방이에요"
+            BottomAction.CLOSED -> "모집 마감"
         }
-        binding.btnJoin.background = if (canJoin || pot.isJoined) {
-            roundedBg(PotColors.ACCENT, 12f)
-        } else {
-            roundedBg(PotColors.CARD, 12f, PotColors.LINE)
+        val active = action in listOf(BottomAction.WAITING_ROOM, BottomAction.JOIN, BottomAction.REQUEST)
+        binding.btnJoin.background = when {
+            active -> roundedBg(PotColors.ACCENT, 12f)
+            action == BottomAction.WITHDRAW -> roundedBg(PotColors.WHITE, 12f, PotColors.LINE)
+            else -> roundedBg(PotColors.CARD, 12f, PotColors.LINE)
         }
         binding.btnJoin.setOnClickListener {
-            when {
-                pot.isJoined -> startActivity(com.example.taxipot.feature.pot.room.WaitingRoomActivity.newIntent(this, pot.id))
-                canJoin -> startActivity(com.example.taxipot.feature.pot.join.PotJoinActivity.newIntent(this, pot))
+            when (action) {
+                BottomAction.WAITING_ROOM ->
+                    startActivity(com.example.taxipot.feature.pot.room.WaitingRoomActivity.newIntent(this, pot.id))
+                BottomAction.JOIN ->
+                    startActivity(com.example.taxipot.feature.pot.join.PotJoinActivity.newIntent(this, pot))
+                BottomAction.REQUEST ->
+                    startActivity(com.example.taxipot.feature.pot.join.PotJoinActivity.newIntent(this, pot, requestMode = true))
+                BottomAction.WITHDRAW -> confirmWithdraw()
+                else -> Unit
             }
         }
+    }
+
+    // 아래 버튼이 할 일 정하기
+    private fun bottomAction(): BottomAction {
+        val hasSeat = pot.status == "RECRUITING" && pot.currentMembers < pot.maxMembers
+        return when {
+            pot.isJoined -> BottomAction.WAITING_ROOM
+            pot.myMemberStatus == "REQUESTED" -> BottomAction.WITHDRAW
+            pot.myMemberStatus == "REJECTED" -> BottomAction.REJECTED
+            pot.myMemberStatus == "KICKED" || pot.myMemberStatus == "NO_SHOW" -> BottomAction.BLOCKED
+            hasSeat && !isPast(pot.arrivalDeadline) -> BottomAction.JOIN
+            hasSeat -> BottomAction.REQUEST   // 참여 마감(출발 5분 전)이 지남 → 입장 요청
+            else -> BottomAction.CLOSED
+        }
+    }
+
+    // 입장 요청 취소 확인 창
+    private fun confirmWithdraw() {
+        AlertDialog.Builder(this)
+            .setTitle("입장 요청을 취소할까요?")
+            .setMessage("아직 예치 전이라 빠진 돈은 없어요.")
+            .setNegativeButton("아니요", null)
+            .setPositiveButton("요청 취소") { _, _ -> viewModel.withdraw() }
+            .show()
+    }
+
+    // 입장 요청 대기 중일 때만 5초마다 다시 불러오기 (화면이 보이는 동안)
+    private fun startRequestPolling() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                while (true) {
+                    delay(5_000)
+                    if (viewModel.uiState.value.pot?.myMemberStatus == "REQUESTED") viewModel.refresh()
+                }
+            }
+        }
+    }
+
+    // "2026-11-25T21:25:00+09:00" 이 지났는지
+    private fun isPast(time: String): Boolean = try {
+        val millis = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.KOREA).parse(time)?.time
+        millis != null && System.currentTimeMillis() >= millis
+    } catch (e: Exception) {
+        false
     }
 
     // 지도 켜기: 출발·도착 가운데를 보여주고 말풍선 2개 찍기
@@ -219,6 +294,8 @@ class PotDetailActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         if (::binding.isInitialized) binding.mapView.resume()
+        // 참여·입장 요청 화면에서 돌아왔을 때 버튼 상태를 최신으로
+        viewModel.refresh()
     }
 
     override fun onPause() {
@@ -226,3 +303,6 @@ class PotDetailActivity : ComponentActivity() {
         if (::binding.isInitialized) binding.mapView.pause()
     }
 }
+
+/** 상세 화면 아래 버튼이 할 일 */
+private enum class BottomAction { WAITING_ROOM, JOIN, REQUEST, WITHDRAW, REJECTED, BLOCKED, CLOSED }
