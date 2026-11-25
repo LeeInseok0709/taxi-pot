@@ -23,11 +23,10 @@ object PotRepository {
      * true  = 가짜 데이터 사용 (서버·계정 없이 화면 확인용)
      * false = 실제 서버 사용 (테스트 계정으로 로그인한 뒤)
      */
-    const val USE_FAKE = true
+    const val USE_FAKE = false
 
     // 한 번에 받아올 방 개수 (명세서: 1 ~ 100)
     private const val PAGE_SIZE = 50
-
     private val api by lazy { ApiClient.create(PotApi::class.java) }
 
     /** 가짜 데이터에서 "나"의 회원 번호 */

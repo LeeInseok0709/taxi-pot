@@ -90,6 +90,7 @@ class PotJoinDoneActivity : ComponentActivity() {
                     "집결 기한까지 출발지 50m 안에서 '도착 확인'을 눌러주세요."
 
         // 6) 버튼
+        binding.btnChat.setOnClickListener { startActivity(com.example.taxipot.feature.pot.chat.ChatActivity.newIntent(this, pot.id)) }
         binding.btnWaitingRoom.setOnClickListener {
             // 홈만 남기고 (상세·참여 화면은 닫고) 대기실(RD-01) 열기
             startActivity(

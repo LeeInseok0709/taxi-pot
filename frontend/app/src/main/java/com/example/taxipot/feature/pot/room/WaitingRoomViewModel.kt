@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.taxipot.core.network.ApiResult
 import com.example.taxipot.data.remote.dto.pot.PotArrivalResponse
 import com.example.taxipot.data.remote.dto.pot.PotDetailResponse
+import com.example.taxipot.feature.pot.chat.PotRealtime
 import com.example.taxipot.feature.pot.data.MyInfo
 import com.example.taxipot.feature.pot.data.PotRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +34,9 @@ class WaitingRoomViewModel : ViewModel() {
     val uiState: StateFlow<WaitingRoomUiState> = _uiState.asStateFlow()
 
     private var potId = -1L
+
+    // 실시간 연결 (POT_UPDATED 오면 방 정보 다시 불러오기)
+    private var realtime: PotRealtime? = null
 
     /** 어느 방의 대기실인지 정하기 */
     fun setPot(potId: Long) {
@@ -88,6 +92,28 @@ class WaitingRoomViewModel : ViewModel() {
 
     /** 문장을 보여준 뒤 지우기 */
     fun messageShown() = _uiState.update { it.copy(message = null) }
+
+    /** 화면이 보일 때: 실시간 연결 → 인원·도착·상태가 바뀌면 자동 새로고침 (가짜 데이터일 때는 연결 안 함) */
+    fun startRealtime() {
+        if (PotRepository.USE_FAKE || potId < 0) return
+        if (realtime == null) {
+            realtime = PotRealtime(
+                potId = potId,
+                onChat = { },                 // 대기실에서는 채팅을 그리지 않음
+                onPotUpdated = { refresh() }
+            )
+        }
+        realtime?.connect()
+    }
+
+    /** 화면이 안 보일 때: 실시간 끊기 */
+    fun stopRealtime() {
+        realtime?.disconnect()
+    }
+
+    override fun onCleared() {
+        realtime?.disconnect()
+    }
 
     // 버튼 작업 공통: 한 번에 하나만, 성공하면 문장 + 새로고침(또는 화면 닫기), 실패하면 이유
     private fun runAction(

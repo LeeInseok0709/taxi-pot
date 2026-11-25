@@ -23,6 +23,7 @@ import com.example.taxipot.BuildConfig
 import com.example.taxipot.data.remote.dto.pot.PotDetailResponse
 import com.example.taxipot.data.remote.dto.pot.PotMemberResponse
 import com.example.taxipot.databinding.ActivityWaitingRoomBinding
+import com.example.taxipot.feature.pot.chat.ChatActivity
 import com.example.taxipot.feature.pot.data.PotRepository
 import com.example.taxipot.feature.pot.join.seatLabel
 import com.example.taxipot.feature.pot.main.LocationHelper
@@ -110,7 +111,9 @@ class WaitingRoomActivity : ComponentActivity() {
         // 5) 버튼
         binding.btnBack.setOnClickListener { finish() }
         binding.btnEdit.setOnClickListener { showToast("방 수정은 준비 중이에요") }
-        binding.btnChat.setOnClickListener { showToast("채팅(RD-02)은 다음 단계에서 연결돼요") }
+        binding.btnChat.setOnClickListener {
+            startActivity(ChatActivity.newIntent(this, intent.getLongExtra(EXTRA_POT_ID, -1L)))
+        }
         binding.btnJoinRequests.setOnClickListener { showToast("입장 요청(RD-03)은 다음 단계에서 연결돼요") }
         binding.btnCancel.setOnClickListener { confirmCancel() }
         binding.btnArrive.setOnClickListener { onArriveClick() }
@@ -398,6 +401,16 @@ class WaitingRoomActivity : ComponentActivity() {
 
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        viewModel.startRealtime()   // 화면이 보이는 동안 실시간 연결 (POT_UPDATED → 자동 새로고침)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        viewModel.stopRealtime()
     }
 
     override fun onResume() {

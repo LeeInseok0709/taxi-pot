@@ -60,6 +60,9 @@
             android:name=".feature.pot.room.WaitingRoomActivity"
             android:exported="false" />
         <activity
+            android:name=".feature.pot.chat.ChatActivity"
+            android:exported="false" />
+        <activity
             android:name=".feature.auth.login.LoginActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
