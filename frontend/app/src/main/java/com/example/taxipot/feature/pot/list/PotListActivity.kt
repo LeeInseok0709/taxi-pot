@@ -1,16 +1,18 @@
 package com.example.taxipot.feature.pot.list
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.taxipot.databinding.ActivityPotListBinding
 import com.example.taxipot.feature.pot.data.FakePotData
-import com.example.taxipot.feature.pot.data.PotSummaryResponse
-import com.example.taxipot.feature.pot.data.isVacancy
+import com.example.taxipot.feature.pot.data.PotFilter
+import com.example.taxipot.feature.pot.filter.PotFilterActivity
 import com.example.taxipot.feature.pot.main.PotColors
 import com.example.taxipot.feature.pot.main.PotListAdapter
 import com.example.taxipot.feature.pot.main.roundedBg
@@ -22,10 +24,22 @@ class PotListActivity : ComponentActivity() {
 
     private lateinit var binding: ActivityPotListBinding
 
+    // 지금 적용된 필터·정렬 조건 (처음엔 기본값)
+    private var filter = PotFilter()
+
     // 카드를 눌렀을 때 (나중에 EX-04 택시팟 상세 화면으로 이동)
     private val adapter = PotListAdapter { pot ->
         showToast("${pot.departureName} → ${pot.destinationName} (상세 화면 준비 중)")
     }
+
+    // EX-03 필터 화면을 열고, "적용"을 누르면 결과를 받아서 목록에 반영
+    private val filterLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                filter = PotFilter.from(result.data)
+                showPots()
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,17 +59,21 @@ class PotListActivity : ComponentActivity() {
             isAppearanceLightNavigationBars = true
         }
 
-        // 3) 디자인 적용 (둥근 배경, 테두리)
-        applyDesign()
+        // 3) 고정 디자인
+        binding.root.setBackgroundColor(PotColors.BACKGROUND)
+        binding.btnMembers.background = roundedBg(PotColors.CARD, 10f, PotColors.LINE)
+        binding.tvNotice.background = roundedBg(PotColors.CARD, 10f, PotColors.LINE)
+        binding.ivNavHome.background = roundedBg(PotColors.ACCENT, 14f)
 
         // 4) 카드 목록 설정
         binding.rvPots.layoutManager = LinearLayoutManager(this)
         binding.rvPots.adapter = adapter
 
-        // 5) 성별·인원·정렬 버튼 (다음 단계 EX-03 필터·정렬 화면에서 연결)
-        binding.btnGender.setOnClickListener { showToast("필터·정렬 화면 (다음 단계)") }
-        binding.btnMembers.setOnClickListener { showToast("필터·정렬 화면 (다음 단계)") }
-        binding.btnSort.setOnClickListener { showToast("필터·정렬 화면 (다음 단계)") }
+        // 5) 성별·정렬 버튼 → EX-03 필터·정렬 화면 열기
+        binding.btnGender.setOnClickListener { openFilter() }
+        binding.btnSort.setOnClickListener { openFilter() }
+        // 인원은 명세서 GET /api/pots 에 조건값이 없어서 팀에서 정한 뒤 추가
+        binding.btnMembers.setOnClickListener { showToast("인원 필터는 팀에서 정한 뒤 추가 예정") }
 
         // 6) 그 외 버튼
         binding.btnBell.setOnClickListener { showToast("알림 (준비 중)") }
@@ -63,28 +81,34 @@ class PotListActivity : ComponentActivity() {
         binding.navWallet.setOnClickListener { showToast("내 지갑 (준비 중)") }
         binding.navMy.setOnClickListener { showToast("마이페이지 (준비 중)") }
 
-        // 7) 가짜 데이터로 목록 보여주기 (서버 연결 후 이 줄만 바꾸면 됨)
-        showPots(FakePotData.pots)
+        // 7) 목록 보여주기
+        showPots()
     }
 
-    // 결원 방은 맨 위에 고정, 나머지는 출발 시각 순서로 보여주기
-    // (서버 GET /api/pots 도 같은 규칙으로 정렬해서 주지만, 지금은 가짜 데이터라 앱에서 정렬)
-    private fun showPots(source: List<PotSummaryResponse>) {
-        val sorted = source.sortedWith(
-            compareByDescending<PotSummaryResponse> { it.isVacancy }
-                .thenBy { it.departureTime }
-        )
-        adapter.submitList(sorted)
+    // 지금 조건을 담아서 필터 화면 열기
+    private fun openFilter() {
+        filterLauncher.launch(filter.putInto(Intent(this, PotFilterActivity::class.java)))
     }
 
-    // 둥근 배경과 테두리 입히기 (색은 PotStyle.kt 에서 관리)
-    private fun applyDesign() {
-        binding.root.setBackgroundColor(PotColors.BACKGROUND)
-        binding.btnGender.background = roundedBg(PotColors.CARD, 10f, PotColors.LINE)
-        binding.btnMembers.background = roundedBg(PotColors.CARD, 10f, PotColors.LINE)
+    // 조건을 적용해서 목록과 버튼 글자 다시 그리기
+    // (지금은 가짜 데이터라 앱에서 거르고 정렬, 서버 연결 후에는 조건을 GET /api/pots 로 보냄)
+    private fun showPots() {
+        val result = filter.apply(FakePotData.pots)
+        adapter.submitList(result)
+
+        // 버튼 글자: 고른 조건 보여주기
+        binding.btnGender.text = "${filter.genderText} ▾"
+        binding.btnSort.text = "정렬: ${filter.sortText}"
+
+        // 조건이 걸린 버튼은 베이지로 강조
+        binding.btnGender.background = if (filter.genderOption != "ALL") {
+            roundedBg(PotColors.ACCENT, 10f, PotColors.LINE)
+        } else {
+            roundedBg(PotColors.CARD, 10f, PotColors.LINE)
+        }
         binding.btnSort.background = roundedBg(PotColors.ACCENT, 10f, PotColors.LINE)
-        binding.tvNotice.background = roundedBg(PotColors.CARD, 10f, PotColors.LINE)
-        binding.ivNavHome.background = roundedBg(PotColors.ACCENT, 14f)
+
+        if (result.isEmpty()) showToast("조건에 맞는 택시팟이 없어요")
     }
 
     private fun showToast(message: String) {
