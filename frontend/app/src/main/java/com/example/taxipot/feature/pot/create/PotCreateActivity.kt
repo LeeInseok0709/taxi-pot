@@ -1,6 +1,5 @@
 package com.example.taxipot.feature.pot.create
 
-import android.app.AlertDialog
 import android.app.TimePickerDialog
 import android.os.Bundle
 import android.widget.TextView
@@ -10,8 +9,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.taxipot.data.remote.dto.pot.PotCreateRequest
 import com.example.taxipot.databinding.ActivityPotCreateBinding
+import com.example.taxipot.feature.pot.data.FakePotData
 import com.example.taxipot.feature.pot.data.Place
+import com.example.taxipot.feature.pot.data.PotRepository
 import com.example.taxipot.feature.pot.main.PotColors
 import com.example.taxipot.feature.pot.main.roundedBg
 import java.text.SimpleDateFormat
@@ -21,7 +23,8 @@ import java.util.TimeZone
 
 /**
  * CR-01 방 만들기 (입력 화면)
- * 출발지·목적지는 CR-02/03(PlacePickActivity)에서 골라 오고, "다음"을 누르면 CR-04(확인)로 이동 예정
+ * 출발지·목적지는 CR-02/03(PlacePickActivity), 좌석은 SeatPickActivity에서 골라 오고,
+ * "다음"을 누르면 CR-04(PotCreateConfirmActivity)로 이동
  */
 class PotCreateActivity : ComponentActivity() {
 
@@ -63,6 +66,19 @@ class PotCreateActivity : ComponentActivity() {
                 }
             }
         }
+
+    // 좌석 선택 결과 받기
+    private val seatLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                SeatPickActivity.seatFrom(result.data)?.let {
+                    preferredSeat = it
+                    render()
+                }
+            }
+        }
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -168,15 +184,16 @@ class PotCreateActivity : ComponentActivity() {
         }, start.get(Calendar.HOUR_OF_DAY), start.get(Calendar.MINUTE), true).show()
     }
 
-    // 희망 좌석 고르기
+    // 희망 좌석 고르기 → 좌석 선택 화면 (요금을 넣었으면 예치액도 보여줌)
     private fun pickSeat() {
-        AlertDialog.Builder(this)
-            .setTitle("내 희망 좌석")
-            .setItems(seatLabels) { _, which ->
-                preferredSeat = seatCodes[which]
-                render()
-            }
-            .show()
+        val fare = binding.etFare.text.toString().toIntOrNull()
+        val hold = fare?.let { com.example.taxipot.feature.pot.data.PotRepository.holdAmount(it, maxMembers) }
+        seatLauncher.launch(
+            SeatPickActivity.newIntent(
+                this, preferredSeat, hold,
+                com.example.taxipot.feature.pot.data.FakePotData.FAKE_BALANCE
+            )
+        )
     }
 
     // "오늘 21:30" / "내일 07:00"
@@ -192,17 +209,19 @@ class PotCreateActivity : ComponentActivity() {
         SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.KOREA).apply { timeZone = seoul }
             .format(time.time) + "+09:00"
 
-    // 다음: 입력 확인 (명세서 규칙과 같게)
+    // 다음: 입력 확인 (명세서 규칙과 같게) → CR-04 방 만들기 확인으로 이동
     private fun onNext() {
         val title = binding.etTitle.text.toString().trim()
         val fare = binding.etFare.text.toString().toIntOrNull()
+        val dep = departure
+        val dest = destination
         val time = departureTime
         val minutesLeft = time?.let { (it.timeInMillis - System.currentTimeMillis()) / 60_000 }
 
         val error = when {
             title.isEmpty() -> "방 제목을 입력해 주세요"
-            departure == null -> "출발지를 선택해 주세요"
-            destination == null -> "목적지를 선택해 주세요"
+            dep == null -> "출발지를 선택해 주세요"
+            dest == null -> "목적지를 선택해 주세요"
             time == null || minutesLeft == null -> "출발 시각을 선택해 주세요"
             minutesLeft < 15 -> "출발 시각은 지금부터 15분 이후여야 해요"
             minutesLeft > 24 * 60 -> "출발 시각은 24시간 이내여야 해요"
@@ -210,13 +229,31 @@ class PotCreateActivity : ComponentActivity() {
             fare > 500_000 -> "예상 총 요금은 50만 원 이하로 입력해 주세요"
             else -> null
         }
-        if (error != null) {
-            showToast(error)
+        if (error != null || dep == null || dest == null || time == null || fare == null) {
+            if (error != null) showToast(error)
             return
         }
 
-        // CR-04(방 만들기 확인)는 다음 단계에서 연결
-        showToast("입력 완료! ${departure?.name} → ${destination?.name}, ${isoText(time!!)}")
+        // 서버로 보낼 요청 만들기 (오픈채팅 링크는 비어 있으면 안 보냄)
+        val openChat = binding.etOpenChat.text.toString().trim()
+        val request = PotCreateRequest(
+            title = title,
+            departureName = dep.name,
+            departureLat = dep.lat,
+            departureLng = dep.lng,
+            destinationName = dest.name,
+            destinationLat = dest.lat,
+            destinationLng = dest.lng,
+            departureTime = isoText(time),
+            maxMembers = maxMembers,
+            genderOption = genderOption,
+            expectedFare = fare,
+            openChatUrl = openChat.ifEmpty { null },
+            preferredSeat = preferredSeat
+        )
+
+        // CR-04 방 만들기 확인으로 이동
+        startActivity(PotCreateConfirmActivity.newIntent(this, request))
     }
 
     private fun showToast(message: String) {

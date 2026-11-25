@@ -45,6 +45,12 @@
             android:name=".feature.pot.create.PlacePickActivity"
             android:exported="false" />
         <activity
+            android:name=".feature.pot.create.PotCreateConfirmActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.pot.create.SeatPickActivity"
+            android:exported="false" />
+        <activity
             android:name=".feature.auth.login.LoginActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />

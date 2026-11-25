@@ -80,3 +80,23 @@ data class PotDetailResponse(
     val createdAt: String,
     val updatedAt: String
 )
+
+/**
+ * 방 만들기 요청 — API 명세서 PotCreateRequest (POST /api/pots)
+ * 값이 null인 항목(선택 항목)은 서버로 보내지 않음
+ */
+data class PotCreateRequest(
+    val title: String,              // 방 제목 (100자 이하)
+    val departureName: String,      // 출발지 이름
+    val departureLat: Double,
+    val departureLng: Double,
+    val destinationName: String,    // 도착지 이름
+    val destinationLat: Double,
+    val destinationLng: Double,
+    val departureTime: String,      // 출발 시각 "2026-11-25T21:30:00+09:00" (15분 후 ~ 24시간 이내)
+    val maxMembers: Int,            // 3 또는 4
+    val genderOption: String?,      // ALL / MALE / FEMALE (선택)
+    val expectedFare: Int,          // 예상 총 요금 (0 ~ 500,000원)
+    val openChatUrl: String?,       // 오픈채팅 링크 (선택)
+    val preferredSeat: String?      // FRONT / BACK_LEFT / BACK_MID / BACK_RIGHT / NONE (선택)
+)
