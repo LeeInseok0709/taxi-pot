@@ -2208,9 +2208,12 @@ paths:
         - name: size
           in: query
           required: false
+          description: 1 ~ 100. 범위를 벗어나면 400이 아니라 가까운 값(1 또는 100)으로 맞춤
           schema:
             type: integer
             default: 30
+            minimum: 1
+            maximum: 100
       responses:
         "200":
           description: 성공
@@ -2918,9 +2921,12 @@ components:
       name: size
       in: query
       required: false
+      description: 페이지 크기 1 ~ 100. 범위를 벗어나면 400 INVALID_INPUT
       schema:
         type: integer
         default: 20
+        minimum: 1
+        maximum: 100
     PaymentId:
       name: paymentId
       in: path
