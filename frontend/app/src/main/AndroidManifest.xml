@@ -36,6 +36,9 @@
             android:name=".feature.pot.filter.PotFilterActivity"
             android:exported="false" />
         <activity
+            android:name=".feature.pot.detail.PotDetailActivity"
+            android:exported="false" />
+        <activity
             android:name=".feature.auth.login.LoginActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />

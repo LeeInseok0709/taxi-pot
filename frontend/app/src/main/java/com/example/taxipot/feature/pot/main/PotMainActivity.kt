@@ -39,10 +39,20 @@ class PotMainActivity : ComponentActivity() {
     private var kakaoMap: KakaoMap? = null                      // 지도가 준비되면 여기 들어옴
     private var pots: List<PotSummaryResponse> = emptyList()   // 지금 화면에 보여주는 방 목록
 
-    // 카드를 눌렀을 때: 지도를 그 방 위치로 이동 (나중에 EX-04 상세 화면으로 이동)
+    // 카드를 눌렀을 때: 택시팟 상세(EX-04)로 이동
     private val adapter = PotListAdapter { pot ->
-        moveCamera(pot.departureLat, pot.departureLng)
-        showToast("${pot.departureName} → ${pot.destinationName} (상세 화면 준비 중)")
+        startActivity(com.example.taxipot.feature.pot.detail.PotDetailActivity.newIntent(this, pot.id))
+    }
+
+    // 위치 권한 허용 창의 결과 받기
+    private val locationPermissionLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()
+    ) { result ->
+        if (result.values.any { it }) {
+            moveToMyLocation()
+        } else {
+            showToast("위치 권한을 허용해야 내 위치를 볼 수 있어요")
+        }
     }
 
     // ===== 핀 크기 설정 (숫자만 바꿔서 조절) =====
@@ -90,9 +100,7 @@ class PotMainActivity : ComponentActivity() {
         binding.rvPots.adapter = adapter
 
         // 8) 버튼들 (아직 화면이 없는 것은 "준비 중" 메시지)
-        binding.btnMyLocation.setOnClickListener {
-            moveCamera(FakePotData.BAEKSEOK_LAT, FakePotData.BAEKSEOK_LNG)
-        }
+        binding.btnMyLocation.setOnClickListener { onMyLocationClick() }
         binding.btnBell.setOnClickListener { showToast("알림 (준비 중)") }
         binding.tvSearch.setOnClickListener { showToast("장소 검색 (준비 중)") }
         binding.btnCreatePot.setOnClickListener { showToast("방 만들기 (준비 중)") }
@@ -264,6 +272,46 @@ class PotMainActivity : ComponentActivity() {
     // 지도를 원하는 위치로 이동
     private fun moveCamera(lat: Double, lng: Double) {
         kakaoMap?.moveCamera(CameraUpdateFactory.newCenterPosition(LatLng.from(lat, lng)))
+    }
+
+    // 내 위치 버튼을 눌렀을 때: 권한이 있으면 바로 찾고, 없으면 허용 창 띄우기
+    private fun onMyLocationClick() {
+        if (LocationHelper.hasPermission(this)) {
+            moveToMyLocation()
+        } else {
+            locationPermissionLauncher.launch(
+                arrayOf(
+                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        }
+    }
+
+    // 현재 위치를 찾아서 지도를 그곳으로 옮기기
+    private fun moveToMyLocation() {
+        if (!LocationHelper.isLocationOn(this)) {
+            showToast("휴대폰 설정에서 위치(GPS)를 켜 주세요")
+            return
+        }
+
+        showToast("내 위치를 찾는 중...")
+        LocationHelper.getCurrentLocation(this) { location ->
+            if (location == null) {
+                showToast("내 위치를 찾지 못했어요. 잠시 후 다시 눌러 주세요")
+                return@getCurrentLocation
+            }
+
+            moveCamera(location.latitude, location.longitude)
+
+            // 시험용: 백석대학교까지 거리 (나중에 집결 50m 확인에 사용)
+            val meters = LocationHelper.distanceMeters(
+                location.latitude, location.longitude,
+                com.example.taxipot.feature.pot.data.FakePotData.BAEKSEOK_LAT,
+                com.example.taxipot.feature.pot.data.FakePotData.BAEKSEOK_LNG
+            )
+            showToast("백석대학교까지 약 %,dm".format(meters.toInt()))
+        }
     }
 
     private fun showToast(message: String) {
