@@ -197,13 +197,23 @@ class PotJoinActivity : ComponentActivity() {
         dialogBinding.tvShortage.text = "%,dP".format(info.shortage)
 
         // 버튼
-        dialogBinding.btnClose.setOnClickListener { dialog.dismiss() }
         dialogBinding.btnCharge.setOnClickListener {
             dialog.dismiss()
-            showToast("포인트 충전(WL-02)은 준비 중이에요")
+            openWalletCharge()
         }
 
         dialog.show()
+    }
+
+    // WL-02 포인트 충전 화면 열기 (지연님 WalletChargeActivity)
+    // 아직 화면이 없으면 빌드 오류가 나지 않도록 이름(글자)으로 찾아서 열고, 없으면 안내만
+    private fun openWalletCharge() {
+        val intent = Intent().setClassName(this, "com.example.taxipot.feature.wallet.charge.WalletChargeActivity")
+        try {
+            startActivity(intent)
+        } catch (e: android.content.ActivityNotFoundException) {
+            showToast("충전 화면은 준비 중이에요")
+        }
     }
 
     private fun showToast(message: String) {
