@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.taxipot.databinding.ItemPotBinding
-import com.example.taxipot.feature.pot.data.PotSummaryResponse
+import com.example.taxipot.data.remote.dto.pot.PotSummaryResponse
 import com.example.taxipot.feature.pot.data.departureClock
 import com.example.taxipot.feature.pot.data.genderLabel
 import com.example.taxipot.feature.pot.data.isVacancy

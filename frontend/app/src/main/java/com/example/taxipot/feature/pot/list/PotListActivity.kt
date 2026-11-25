@@ -4,6 +4,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.launch
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -26,6 +31,12 @@ class PotListActivity : ComponentActivity() {
 
     // 지금 적용된 필터·정렬 조건 (처음엔 기본값)
     private var filter = PotFilter()
+
+    // 택시팟 목록 불러오기 담당
+    private val viewModel: PotListViewModel by viewModels()
+
+    // 불러오기를 요청했고 아직 결과를 처리하지 않았는지 (빈 목록 안내용)
+    private var waitingResult = false
 
     // 카드를 눌렀을 때: 택시팟 상세(EX-04)로 이동
     private val adapter = PotListAdapter { pot ->
@@ -81,7 +92,8 @@ class PotListActivity : ComponentActivity() {
         binding.navWallet.setOnClickListener { showToast("내 지갑 (준비 중)") }
         binding.navMy.setOnClickListener { showToast("마이페이지 (준비 중)") }
 
-        // 7) 목록 보여주기
+        // 7) 목록 불러오기
+        observeViewModel()
         showPots()
     }
 
@@ -90,11 +102,10 @@ class PotListActivity : ComponentActivity() {
         filterLauncher.launch(filter.putInto(Intent(this, PotFilterActivity::class.java)))
     }
 
-    // 조건을 적용해서 목록과 버튼 글자 다시 그리기
-    // (지금은 가짜 데이터라 앱에서 거르고 정렬, 서버 연결 후에는 조건을 GET /api/pots 로 보냄)
+    // 조건으로 목록을 다시 불러오고 버튼 글자 바꾸기 (기준 위치: 백석대학교)
     private fun showPots() {
-        val result = filter.apply(FakePotData.pots)
-        adapter.submitList(result)
+        waitingResult = true
+        viewModel.load(filter, FakePotData.BAEKSEOK_LAT, FakePotData.BAEKSEOK_LNG)
 
         // 버튼 글자: 고른 조건 보여주기
         binding.btnGender.text = "${filter.genderText} ▾"
@@ -107,8 +118,28 @@ class PotListActivity : ComponentActivity() {
             roundedBg(PotColors.CARD, 10f, PotColors.LINE)
         }
         binding.btnSort.background = roundedBg(PotColors.ACCENT, 10f, PotColors.LINE)
+    }
 
-        if (result.isEmpty()) showToast("조건에 맞는 택시팟이 없어요")
+    // 불러온 결과가 오면 목록 그리기, 실패하면 메시지
+    private fun observeViewModel() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    adapter.submitList(state.pots)
+
+                    if (waitingResult && !state.isLoading) {
+                        waitingResult = false
+                        if (state.errorMessage == null && state.pots.isEmpty()) {
+                            showToast("조건에 맞는 택시팟이 없어요")
+                        }
+                    }
+                    state.errorMessage?.let {
+                        showToast(it)
+                        viewModel.errorShown()
+                    }
+                }
+            }
+        }
     }
 
     private fun showToast(message: String) {
