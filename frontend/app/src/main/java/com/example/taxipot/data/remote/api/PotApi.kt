@@ -1,6 +1,8 @@
 package com.example.taxipot.data.remote.api
 
 import com.example.taxipot.data.remote.dto.common.PageResponse
+import com.example.taxipot.data.remote.dto.pot.JoinRequestCreateRequest
+import com.example.taxipot.data.remote.dto.pot.JoinRequestResponse
 import com.example.taxipot.data.remote.dto.pot.PotArrivalRequest
 import com.example.taxipot.data.remote.dto.pot.PotArrivalResponse
 import com.example.taxipot.data.remote.dto.pot.PotCreateRequest
@@ -81,4 +83,35 @@ interface PotApi {
     /** 참여 취소 (DELETE /api/pots/{potId}/members/me, 동승자) — 204 */
     @DELETE("api/pots/{potId}/members/me")
     suspend fun leave(@Path("potId") potId: Long): Response<Unit>
+
+    // ===== 입장 요청 (RD-03) =====
+
+    /** 입장 요청 보내기 (참여 마감 후, 출발지 50m 안) — 예치는 방장이 수락할 때 */
+    @POST("api/pots/{potId}/join-requests")
+    suspend fun requestJoin(
+        @Path("potId") potId: Long,
+        @Body request: JoinRequestCreateRequest
+    ): Response<JoinRequestResponse>
+
+    /** 입장 요청 대기 목록 (방장 전용, 요청 시각 순) */
+    @GET("api/pots/{potId}/join-requests")
+    suspend fun getJoinRequests(@Path("potId") potId: Long): Response<List<JoinRequestResponse>>
+
+    /** 내 입장 요청 철회 — 204 */
+    @DELETE("api/pots/{potId}/join-requests/me")
+    suspend fun withdrawJoinRequest(@Path("potId") potId: Long): Response<Unit>
+
+    /** 입장 요청 수락 (방장) — 요청자 예치 + 바로 도착 처리, 요청자의 참여 결과가 옴 */
+    @POST("api/pots/{potId}/join-requests/{userId}/accept")
+    suspend fun acceptJoinRequest(
+        @Path("potId") potId: Long,
+        @Path("userId") userId: Long
+    ): Response<PotJoinResponse>
+
+    /** 입장 요청 거절 (방장) — 204, 거절된 사람은 같은 방에 다시 요청 불가 */
+    @POST("api/pots/{potId}/join-requests/{userId}/reject")
+    suspend fun rejectJoinRequest(
+        @Path("potId") potId: Long,
+        @Path("userId") userId: Long
+    ): Response<Unit>
 }

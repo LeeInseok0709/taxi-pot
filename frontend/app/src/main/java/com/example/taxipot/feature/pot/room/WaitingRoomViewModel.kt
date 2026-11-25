@@ -24,7 +24,9 @@ data class WaitingRoomUiState(
     /** 한 번 보여주고 지울 문장 */
     val message: String? = null,
     /** 방 취소·참여 취소가 끝나서 화면을 닫아야 하는지 */
-    val closed: Boolean = false
+    val closed: Boolean = false,
+    /** (방장) 기다리는 입장 요청 수 → "입장 요청 (2)" */
+    val joinRequestCount: Int = 0
 )
 
 /** RD-01 대기실 */
@@ -48,8 +50,19 @@ class WaitingRoomViewModel : ViewModel() {
         if (potId < 0) return
         viewModelScope.launch {
             when (val result = PotRepository.getPot(potId)) {
-                is ApiResult.Success -> _uiState.update {
-                    it.copy(pot = result.data, myUserId = MyInfo.myUserId(result.data))
+                is ApiResult.Success -> {
+                    val pot = result.data
+                    val myUserId = MyInfo.myUserId(pot)
+                    _uiState.update { it.copy(pot = pot, myUserId = myUserId) }
+
+                    // 방장이고 모집 중이면 기다리는 입장 요청 수도 확인
+                    val isHost = myUserId != null && myUserId == pot.hostId
+                    val count = if (isHost && pot.status == "RECRUITING") {
+                        (PotRepository.getJoinRequests(potId) as? ApiResult.Success)?.data?.size ?: 0
+                    } else {
+                        0
+                    }
+                    _uiState.update { it.copy(joinRequestCount = count) }
                 }
                 is ApiResult.Failure, is ApiResult.NetworkError -> _uiState.update {
                     it.copy(message = PotRepository.errorMessage(result))

@@ -130,3 +130,21 @@ data class PotArrivalResponse(
     val totalMembers: Int,      // 현재 참여 인원
     val allArrived: Boolean     // 전원 도착 여부
 )
+
+/** 입장 요청 보내기 — 명세서 JoinRequestCreateRequest (POST /api/pots/{potId}/join-requests) */
+data class JoinRequestCreateRequest(
+    val lat: Double,                // 지금 내 GPS 위도 (출발지 50m 안이어야 함)
+    val lng: Double,
+    val preferredSeat: String?      // FRONT / BACK_LEFT / BACK_MID / BACK_RIGHT / NONE (선택)
+)
+
+/** 입장 요청 1건 — 명세서 JoinRequestResponse */
+data class JoinRequestResponse(
+    val potId: Long,
+    val memberId: Long,             // 요청한 사람 회원 번호 (수락·거절 API의 userId)
+    val nickname: String,
+    val ratingAvg: Double,
+    val preferredSeat: String,      // 희망 좌석
+    val status: String,             // REQUESTED (대기 중)
+    val requestedAt: String         // 요청 시각
+)
