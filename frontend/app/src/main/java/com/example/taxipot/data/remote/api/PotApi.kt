@@ -1,6 +1,8 @@
 package com.example.taxipot.data.remote.api
 
 import com.example.taxipot.data.remote.dto.common.PageResponse
+import com.example.taxipot.data.remote.dto.pot.PotArrivalRequest
+import com.example.taxipot.data.remote.dto.pot.PotArrivalResponse
 import com.example.taxipot.data.remote.dto.pot.PotCreateRequest
 import com.example.taxipot.data.remote.dto.pot.PotDetailResponse
 import com.example.taxipot.data.remote.dto.pot.PotJoinRequest
@@ -8,6 +10,7 @@ import com.example.taxipot.data.remote.dto.pot.PotJoinResponse
 import com.example.taxipot.data.remote.dto.pot.PotSummaryResponse
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -50,4 +53,32 @@ interface PotApi {
         @Path("potId") potId: Long,
         @Body request: PotJoinRequest
     ): Response<PotJoinResponse>
+
+    // ===== 대기실 (RD-01) =====
+
+    /** 도착 확인 (POST /api/pots/{potId}/members/me/arrival) — 내 GPS 위치, 출발지 50m 안 */
+    @POST("api/pots/{potId}/members/me/arrival")
+    suspend fun arrive(
+        @Path("potId") potId: Long,
+        @Body request: PotArrivalRequest
+    ): Response<PotArrivalResponse>
+
+    /** 탑승 시작 (POST /api/pots/{potId}/start, 방장) — 전원 도착 + 2명 이상 */
+    @POST("api/pots/{potId}/start")
+    suspend fun start(@Path("potId") potId: Long): Response<PotDetailResponse>
+
+    /** 미도착자 내보내기 (POST /api/pots/{potId}/members/{userId}/kick, 방장) — 204 */
+    @POST("api/pots/{potId}/members/{userId}/kick")
+    suspend fun kick(
+        @Path("potId") potId: Long,
+        @Path("userId") userId: Long
+    ): Response<Unit>
+
+    /** 방 취소 (DELETE /api/pots/{potId}, 방장) — 204 */
+    @DELETE("api/pots/{potId}")
+    suspend fun cancelPot(@Path("potId") potId: Long): Response<Unit>
+
+    /** 참여 취소 (DELETE /api/pots/{potId}/members/me, 동승자) — 204 */
+    @DELETE("api/pots/{potId}/members/me")
+    suspend fun leave(@Path("potId") potId: Long): Response<Unit>
 }

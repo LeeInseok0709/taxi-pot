@@ -114,3 +114,19 @@ data class PotJoinResponse(
     val balanceAfter: Int,          // 예치 후 사용 가능 잔액
     val potStatus: String?          // 참여 후 방 상태 (다 차면 CLOSED)
 )
+
+/** 도착 확인 요청 — 명세서 ArrivalRequest (내 GPS 위치) */
+data class PotArrivalRequest(
+    val lat: Double,
+    val lng: Double
+)
+
+/** 도착 확인 결과 — 명세서 ArrivalResponse */
+data class PotArrivalResponse(
+    val potId: Long,
+    val arrivedAt: String,
+    val distanceMeters: Int,    // 출발지까지 거리 (m)
+    val arrivedCount: Int,      // 도착한 참여자 수 (방장 포함)
+    val totalMembers: Int,      // 현재 참여 인원
+    val allArrived: Boolean     // 전원 도착 여부
+)
