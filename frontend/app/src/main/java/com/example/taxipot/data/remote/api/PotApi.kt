@@ -3,6 +3,8 @@ package com.example.taxipot.data.remote.api
 import com.example.taxipot.data.remote.dto.common.PageResponse
 import com.example.taxipot.data.remote.dto.pot.PotCreateRequest
 import com.example.taxipot.data.remote.dto.pot.PotDetailResponse
+import com.example.taxipot.data.remote.dto.pot.PotJoinRequest
+import com.example.taxipot.data.remote.dto.pot.PotJoinResponse
 import com.example.taxipot.data.remote.dto.pot.PotSummaryResponse
 import retrofit2.Response
 import retrofit2.http.Body
@@ -41,4 +43,11 @@ interface PotApi {
     /** 방 만들기 (POST /api/pots) — 성공하면 만든 방 상세가 옴, 방장 예치금도 이때 빠짐 */
     @POST("api/pots")
     suspend fun createPot(@Body request: PotCreateRequest): Response<PotDetailResponse>
+
+    /** 택시팟 참여 (POST /api/pots/{potId}/members) — 참여하면서 예치금이 빠짐 */
+    @POST("api/pots/{potId}/members")
+    suspend fun join(
+        @Path("potId") potId: Long,
+        @Body request: PotJoinRequest
+    ): Response<PotJoinResponse>
 }

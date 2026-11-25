@@ -100,3 +100,17 @@ data class PotCreateRequest(
     val openChatUrl: String?,       // 오픈채팅 링크 (선택)
     val preferredSeat: String?      // FRONT / BACK_LEFT / BACK_MID / BACK_RIGHT / NONE (선택)
 )
+
+/** 택시팟 참여 요청 — 명세서 JoinRequest (POST /api/pots/{potId}/members) */
+data class PotJoinRequest(
+    val preferredSeat: String?      // FRONT / BACK_LEFT / BACK_MID / BACK_RIGHT / NONE (선택)
+)
+
+/** 택시팟 참여 결과 — 명세서 JoinResponse */
+data class PotJoinResponse(
+    val potId: Long,
+    val member: PotMemberResponse?, // 내 참여 정보
+    val heldAmount: Int,            // 예치된 금액 (예상 분담금 + 수수료)
+    val balanceAfter: Int,          // 예치 후 사용 가능 잔액
+    val potStatus: String?          // 참여 후 방 상태 (다 차면 CLOSED)
+)

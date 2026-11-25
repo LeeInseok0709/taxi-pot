@@ -168,7 +168,7 @@ class PotDetailActivity : ComponentActivity() {
             roundedBg(PotColors.CARD, 12f, PotColors.LINE)
         }
         binding.btnJoin.setOnClickListener {
-            if (canJoin) showToast("좌석 선택 화면(JN-01) 준비 중")
+            if (canJoin) startActivity(com.example.taxipot.feature.pot.join.PotJoinActivity.newIntent(this, pot))
         }
     }
 
