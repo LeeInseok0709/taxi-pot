@@ -1,5 +1,6 @@
 package com.example.taxipot.data.remote.api
 
+import com.example.taxipot.data.remote.dto.common.BankResponse
 import com.example.taxipot.data.remote.dto.common.UniversityResponse
 import retrofit2.Response
 import retrofit2.http.GET
@@ -12,4 +13,9 @@ interface CommonApi {
     @Headers("No-Auth: true")
     @GET("api/universities")
     suspend fun getUniversities(): Response<List<UniversityResponse>>
+
+    /** 출금 은행 목록 */
+    @Headers("No-Auth: true")
+    @GET("api/banks")
+    suspend fun getBanks(): Response<List<BankResponse>>
 }
