@@ -103,6 +103,13 @@ class WaitingRoomViewModel : ViewModel() {
         "참여를 취소했어요. 예치금은 환불돼요"
     }
 
+    /** 방 수정 (방장) — 제목·오픈채팅 링크 */
+    fun updatePot(title: String?, openChatUrl: String?) = runAction(
+        call = { PotRepository.updatePot(potId, title, openChatUrl) }
+    ) {
+        "방 정보를 수정했어요"
+    }
+
     /** 문장을 보여준 뒤 지우기 */
     fun messageShown() = _uiState.update { it.copy(message = null) }
 

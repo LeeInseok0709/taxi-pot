@@ -10,6 +10,12 @@ import com.example.taxipot.data.remote.dto.pot.PotDetailResponse
 import com.example.taxipot.data.remote.dto.pot.PotJoinRequest
 import com.example.taxipot.data.remote.dto.pot.PotJoinResponse
 import com.example.taxipot.data.remote.dto.pot.PotSummaryResponse
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import retrofit2.http.Multipart
+import retrofit2.http.Part
+import retrofit2.http.PATCH
+import com.example.taxipot.data.remote.dto.pot.PotUpdateRequest
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -44,6 +50,13 @@ interface PotApi {
     /** 택시팟 상세 (GET /api/pots/{potId}) */
     @GET("api/pots/{potId}")
     suspend fun getPot(@Path("potId") potId: Long): Response<PotDetailResponse>
+
+    /** 방 수정 (PATCH /api/pots/{potId}, 방장) — 제목·오픈채팅 링크만 */
+    @PATCH("api/pots/{potId}")
+    suspend fun updatePot(
+        @Path("potId") potId: Long,
+        @Body request: PotUpdateRequest
+    ): Response<PotDetailResponse>
 
     /** 방 만들기 (POST /api/pots) — 성공하면 만든 방 상세가 옴, 방장 예치금도 이때 빠짐 */
     @POST("api/pots")
@@ -113,5 +126,16 @@ interface PotApi {
     suspend fun rejectJoinRequest(
         @Path("potId") potId: Long,
         @Path("userId") userId: Long
+    ): Response<Unit>
+
+    // ===== 실요금 청구 (RD-05) =====
+
+    /** 실요금 청구 (방장) — 결제내역 사진 + 실제 요금, 정산은 운영자 승인 때 */
+    @Multipart
+    @POST("api/pots/{potId}/fare-claim")
+    suspend fun claimFare(
+        @Path("potId") potId: Long,
+        @Part("actualFare") actualFare: RequestBody,
+        @Part receiptImage: MultipartBody.Part
     ): Response<Unit>
 }

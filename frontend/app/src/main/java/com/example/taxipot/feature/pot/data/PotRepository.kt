@@ -14,6 +14,9 @@ import com.example.taxipot.data.remote.dto.pot.PotJoinRequest
 import com.example.taxipot.data.remote.dto.pot.PotJoinResponse
 import com.example.taxipot.data.remote.dto.pot.PotMemberResponse
 import com.example.taxipot.data.remote.dto.pot.PotSummaryResponse
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -354,6 +357,34 @@ object PotRepository {
         return ApiResult.Success(Unit)
     }
 
+    // ===== 방 수정 =====
+
+    /** 방 수정 (방장) — 제목·오픈채팅 링크, 바꿀 것만 (null은 그대로) */
+    suspend fun updatePot(potId: Long, title: String?, openChatUrl: String?): ApiResult<PotDetailResponse> {
+        if (!USE_FAKE) {
+            return safeApiCall {
+                api.updatePot(potId, com.example.taxipot.data.remote.dto.pot.PotUpdateRequest(title, openChatUrl))
+            }
+        }
+        val pot = fakeCreated[potId]
+            ?: return ApiResult.Failure(403, "NOT_POT_HOST", "방장만 수정할 수 있습니다.", null)
+        val updated = pot.copy(title = title ?: pot.title, openChatUrl = openChatUrl ?: pot.openChatUrl)
+        fakeCreated[potId] = updated
+        return ApiResult.Success(updated)
+    }
+
+    // ===== 실요금 청구 (RD-05) =====
+
+    /** 실요금 청구 (방장) — jpeg: 결제내역 사진(JPEG 바이트) */
+    suspend fun claimFare(potId: Long, actualFare: Int, jpeg: ByteArray): ApiResult<Unit> {
+        if (USE_FAKE) return ApiResult.Success(Unit)
+        val fare = actualFare.toString().toRequestBody("text/plain".toMediaType())
+        val image = MultipartBody.Part.createFormData(
+            "receiptImage", "receipt.jpg", jpeg.toRequestBody("image/jpeg".toMediaType())
+        )
+        return safeApiCall { api.claimFare(potId, fare, image) }
+    }
+
     /** 가짜 요청자(늦은새) 회원 번호 */
     private const val FAKE_REQUESTER_ID = 903L
 
@@ -393,6 +424,10 @@ object PotRepository {
             "ALREADY_REQUESTED" -> "이미 입장 요청을 보냈어요. 방장의 수락을 기다려 주세요."
             "JOIN_REQUEST_REJECTED" -> "방장이 입장 요청을 거절한 방이에요. 다시 요청할 수 없어요."
             "JOIN_REQUEST_NOT_FOUND" -> "대기 중인 입장 요청이 없어요."
+            "RECEIPT_REQUIRED" -> "결제내역 사진을 올려 주세요."
+            "FARE_CLAIM_IN_REVIEW" -> "이미 청구했어요. 확인이 끝날 때까지 기다려 주세요."
+            "ALREADY_SETTLED" -> "이미 정산이 끝났어요."
+            "INVALID_INPUT" -> "입력한 값을 다시 확인해 주세요."
             else -> result.message
         }
         is ApiResult.NetworkError -> "서버에 연결할 수 없습니다. 인터넷 연결을 확인해 주세요."

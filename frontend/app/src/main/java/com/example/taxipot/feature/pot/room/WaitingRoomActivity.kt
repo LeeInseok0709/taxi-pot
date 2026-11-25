@@ -110,7 +110,7 @@ class WaitingRoomActivity : ComponentActivity() {
 
         // 5) 버튼
         binding.btnBack.setOnClickListener { finish() }
-        binding.btnEdit.setOnClickListener { showToast("방 수정은 준비 중이에요") }
+        binding.btnEdit.setOnClickListener { showEditDialog() }
         binding.btnChat.setOnClickListener {
             startActivity(ChatActivity.newIntent(this, intent.getLongExtra(EXTRA_POT_ID, -1L)))
         }
@@ -318,6 +318,53 @@ class WaitingRoomActivity : ComponentActivity() {
             .setNegativeButton("아니요", null)
             .setPositiveButton("취소하기") { _, _ ->
                 if (isHost) viewModel.cancelPot() else viewModel.leave()
+            }
+            .show()
+    }
+
+    // 방 수정 창 (방장): 제목·오픈채팅 링크, 바뀐 것만 보냄
+    private fun showEditDialog() {
+        val pot = viewModel.uiState.value.pot ?: return
+        if (pot.status != "RECRUITING" && pot.status != "CLOSED") {
+            showToast("탑승이 시작된 뒤에는 수정할 수 없어요")
+            return
+        }
+        val pad = dp(20f).toInt()
+        val etTitle = android.widget.EditText(this).apply {
+            hint = "방 제목 (100자 이하)"
+            setText(pot.title)
+            filters = arrayOf(android.text.InputFilter.LengthFilter(100))
+        }
+        val etUrl = android.widget.EditText(this).apply {
+            hint = "오픈채팅 링크 (선택)"
+            setText(pot.openChatUrl ?: "")
+            inputType = android.text.InputType.TYPE_TEXT_VARIATION_URI
+            filters = arrayOf(android.text.InputFilter.LengthFilter(500))
+        }
+        val box = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(pad, pad / 2, pad, 0)
+            addView(etTitle)
+            addView(etUrl)
+        }
+        AlertDialog.Builder(this)
+            .setTitle("방 수정")
+            .setView(box)
+            .setNegativeButton("취소", null)
+            .setPositiveButton("저장") { _, _ ->
+                val title = etTitle.text.toString().trim()
+                val url = etUrl.text.toString().trim()
+                if (title.isEmpty()) {
+                    showToast("방 제목을 입력해 주세요")
+                    return@setPositiveButton
+                }
+                val newTitle = title.takeIf { it != pot.title }
+                val newUrl = url.takeIf { it.isNotEmpty() && it != (pot.openChatUrl ?: "") }
+                if (newTitle == null && newUrl == null) {
+                    showToast("바뀐 내용이 없어요")
+                    return@setPositiveButton
+                }
+                viewModel.updatePot(newTitle, newUrl)
             }
             .show()
     }
