@@ -69,6 +69,9 @@
             android:name=".feature.pot.ride.RideActivity"
             android:exported="false" />
         <activity
+            android:name=".feature.pot.ride.FareClaimActivity"
+            android:exported="false" />
+        <activity
             android:name=".feature.auth.login.LoginActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />

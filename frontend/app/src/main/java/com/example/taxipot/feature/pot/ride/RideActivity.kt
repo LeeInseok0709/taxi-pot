@@ -100,7 +100,7 @@ class RideActivity : ComponentActivity() {
         binding.btnKakaoT.setOnClickListener { viewModel.uiState.value.pot?.let { openKakaoT(it) } }
         binding.btnUber.setOnClickListener { viewModel.uiState.value.pot?.let { openUber(it) } }
         binding.btnChat.setOnClickListener { startActivity(ChatActivity.newIntent(this, potId)) }
-        binding.btnFareClaim.setOnClickListener { showToast("실요금 청구(RD-05)는 다음 단계에서 연결돼요") }
+        binding.btnFareClaim.setOnClickListener { startActivity(FareClaimActivity.newIntent(this, potId)) }
 
         // 6) 어느 방인지 정하고 결과 기다리기 (불러오기는 onResume에서)
         viewModel.setPot(potId)
@@ -210,10 +210,12 @@ class RideActivity : ComponentActivity() {
                     "&origin_lat=${pot.departureLat}&origin_lng=${pot.departureLng}" +
                     "&dest_lat=${pot.destinationLat}&dest_lng=${pot.destinationLng}"
         )
-        if (!tryOpen(Intent(Intent.ACTION_VIEW, uri))) {
-            showToast("카카오 T 앱이 없어서 설치 화면으로 이동해요")
-            openStore(KAKAO_T_PACKAGE)
-        }
+        // 카카오 T 앱으로만 열기 (앱이 없으면 브라우저 대신 예외가 나서 아래로 넘어감)
+        if (tryOpen(Intent(Intent.ACTION_VIEW, uri).setPackage(KAKAO_T_PACKAGE))) return
+        // 앱은 있는데 위 링크를 못 받는 버전이면 앱만 열기
+        if (tryOpen(Intent(Intent.ACTION_VIEW, Uri.parse("kakaot://")))) return
+        showToast("카카오 T 앱이 없어서 설치 화면으로 이동해요")
+        openStore(KAKAO_T_PACKAGE)
     }
 
     // 우버: 우버 공식 링크 (앱이 있으면 앱, 없으면 웹에서 출발·도착이 채워진 채로 열림)
