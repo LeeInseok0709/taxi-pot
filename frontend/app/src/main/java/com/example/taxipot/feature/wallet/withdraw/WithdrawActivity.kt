@@ -1,5 +1,6 @@
 package com.example.taxipot.feature.wallet.withdraw
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -14,6 +15,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.taxipot.databinding.ActivityWithdrawBinding
+import com.example.taxipot.feature.account.AccountEditActivity
 import com.example.taxipot.feature.wallet.WalletFormat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
@@ -45,9 +47,9 @@ class WithdrawActivity : AppCompatActivity() {
         binding.appBar.tvAppBarTitle.text = "출금하기"
         binding.appBar.btnBack.setOnClickListener { finish() }
 
-        // TODO: AC-01 내 정보 수정(계좌 변경) 만들면 연결
+        // 계좌 변경 → 출금 계좌 관리 (돌아오면 onResume에서 새 계좌로 다시 표시)
         binding.rowChangeAccount.setOnClickListener {
-            Toast.makeText(this, "계좌 변경은 내 정보 수정에서 할 수 있어요 (준비 중)", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, AccountEditActivity::class.java))
         }
         binding.etAmount.doAfterTextChanged { viewModel.clearAmountError() }
         binding.tvAll.setOnClickListener {

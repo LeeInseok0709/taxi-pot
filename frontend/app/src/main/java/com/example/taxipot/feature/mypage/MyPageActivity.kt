@@ -15,6 +15,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.taxipot.core.ui.TaxiPotBottomNav
 import com.example.taxipot.databinding.ActivityMyPageBinding
+import com.example.taxipot.feature.account.MemberWithdrawActivity
+import com.example.taxipot.feature.account.ProfileEditActivity
 import com.example.taxipot.feature.auth.login.LoginActivity
 import com.example.taxipot.feature.auth.verification.VerificationStatusActivity
 import com.example.taxipot.feature.mypage.claim.MyFareClaimActivity
@@ -52,9 +54,8 @@ class MyPageActivity : AppCompatActivity() {
         binding.menuClaims.setOnClickListener { startActivity(Intent(this, MyFareClaimActivity::class.java)) }
         binding.menuNotifications.setOnClickListener { TaxiPotBottomNav.openNotifications(this) }
         binding.menuReports.setOnClickListener { startActivity(Intent(this, MyReportActivity::class.java)) }
-        // TODO: AC-01 내 정보 수정, AC-02 회원 탈퇴 만들면 연결
-        binding.menuEdit.setOnClickListener { showToast("내 정보 수정 (준비 중)") }
-        binding.menuWithdraw.setOnClickListener { showToast("회원 탈퇴 (준비 중)") }
+        binding.menuEdit.setOnClickListener { startActivity(Intent(this, ProfileEditActivity::class.java)) }
+        binding.menuWithdraw.setOnClickListener { startActivity(Intent(this, MemberWithdrawActivity::class.java)) }
         binding.menuLogout.setOnClickListener { confirmLogout() }
         binding.chipVerified.setOnClickListener {
             if (viewModel.uiState.value.profile?.isVerified != true) {
