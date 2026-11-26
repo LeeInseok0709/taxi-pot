@@ -40,6 +40,12 @@ dependencies {
 
     runtimeOnly 'com.mysql:mysql-connector-j'
 
+    // FCM 푸시 (Firebase Admin SDK). 메시징만 쓰므로 Firestore·Storage 는 뺀다
+    implementation('com.google.firebase:firebase-admin:9.11.0') {
+        exclude group: 'com.google.cloud', module: 'google-cloud-firestore'
+        exclude group: 'com.google.cloud', module: 'google-cloud-storage'
+    }
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 

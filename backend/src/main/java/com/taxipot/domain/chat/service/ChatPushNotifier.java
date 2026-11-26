@@ -1,5 +1,6 @@
 package com.taxipot.domain.chat.service;
 
+import com.taxipot.domain.notification.push.PushMessage;
 import com.taxipot.domain.notification.push.PushSender;
 import com.taxipot.domain.user.entity.User;
 import com.taxipot.domain.user.repository.UserRepository;
@@ -50,7 +51,7 @@ public class ChatPushNotifier {
 
     private void sendQuietly(String token, Long potId, String potTitle) {
         try {
-            pushSender.send(token, potTitle, NEW_MESSAGE_CONTENT, potId);
+            pushSender.send(token, PushMessage.chat(potId, potTitle, NEW_MESSAGE_CONTENT));
         } catch (RuntimeException e) {
             log.warn("채팅 푸시 발송 실패 potId={}", potId, e);
         }
