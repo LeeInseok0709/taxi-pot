@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 공통 카드 목록 화면 (이용 기록 · 청구 내역 · 신고 내역 · 알림) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/taxipot_surface"
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/appBar"
+        layout="@layout/view_taxipot_app_bar" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="20dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="20dp"
+                android:paddingBottom="24dp">
+
+                <!-- 탭 (청구 내역) -->
+                <LinearLayout
+                    android:id="@+id/tabs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:orientation="horizontal"
+                    android:visibility="gone" />
+
+                <!-- 위쪽 버튼 (알림: 모두 읽음) -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnTopAction"
+                    style="@style/TaxiPot.OutlineButton"
+                    android:layout_marginBottom="16dp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvError"
+                    style="@style/TaxiPot.ErrorText"
+                    android:layout_marginTop="0dp"
+                    android:layout_marginBottom="8dp"
+                    android:textSize="13sp" />
+
+                <LinearLayout
+                    android:id="@+id/list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+                <TextView
+                    android:id="@+id/tvEmpty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:paddingTop="40dp"
+                    android:paddingBottom="40dp"
+                    android:textColor="@color/taxipot_sub_text"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvMore"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center"
+                    android:padding="12dp"
+                    android:text="더 보기"
+                    android:textColor="@color/taxipot_sub_text"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+
+                <!-- 아래 안내 (청구 내역) -->
+                <LinearLayout
+                    android:id="@+id/boxFooter"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_taxipot_box"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="14dp"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_info_outline"
+                        app:tint="@color/taxipot_text" />
+
+                    <TextView
+                        android:id="@+id/tvFooter"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:textColor="@color/taxipot_sub_text"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            android:visibility="gone"
+            app:indicatorColor="@color/taxipot_text"
+            app:indicatorSize="32dp"
+            app:trackThickness="3dp" />
+    </FrameLayout>
+</LinearLayout>

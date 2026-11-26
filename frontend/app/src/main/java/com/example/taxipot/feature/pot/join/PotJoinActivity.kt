@@ -29,6 +29,7 @@ import com.example.taxipot.feature.pot.main.LocationHelper
 import com.example.taxipot.feature.pot.main.PotColors
 import com.example.taxipot.feature.pot.main.roundedBg
 import com.example.taxipot.feature.pot.room.showActivePotDialog
+import com.example.taxipot.feature.wallet.WalletBalance
 import kotlinx.coroutines.launch
 
 /**
@@ -53,7 +54,7 @@ class PotJoinActivity : ComponentActivity() {
     private lateinit var seatViews: Map<String, TextView>
 
     // 현재 잔액 (지갑 API 연결 전까지 가짜 값)
-    private val balance = FakePotData.FAKE_BALANCE
+    private val balance = WalletBalance.latest ?: 0
 
     // 성공 후 화면 이동은 한 번만
     private var moved = false

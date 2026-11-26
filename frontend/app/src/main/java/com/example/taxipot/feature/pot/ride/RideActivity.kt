@@ -29,6 +29,7 @@ import com.example.taxipot.feature.pot.main.PotMainActivity
 import com.example.taxipot.feature.pot.main.bubbleBitmap
 import com.example.taxipot.feature.pot.main.dp
 import com.example.taxipot.feature.pot.main.roundedBg
+import com.example.taxipot.feature.settlement.SettlementActivity
 import com.kakao.vectormap.KakaoMap
 import com.kakao.vectormap.KakaoMapReadyCallback
 import com.kakao.vectormap.KakaoMapSdk
@@ -124,9 +125,14 @@ class RideActivity : ComponentActivity() {
 
     // 방 정보로 화면 채우기
     private fun render(pot: PotDetailResponse, myUserId: Long?) {
-        // 정산이 끝났거나 방이 취소됐으면 안내하고 홈으로
-        if (pot.status == "COMPLETED" || pot.status == "CANCELED") {
-            showToast(if (pot.status == "COMPLETED") "정산이 끝났어요. 이용해 주셔서 고마워요!" else "방이 취소됐어요")
+        // 정산이 끝났으면 정산 내역(ST-01)으로, 방이 취소됐으면 홈으로
+        if (pot.status == "COMPLETED") {
+            startActivity(SettlementActivity.newIntent(this, pot.id))
+            finish()
+            return
+        }
+        if (pot.status == "CANCELED") {
+            showToast("방이 취소됐어요")
             goHome()
             return
         }
