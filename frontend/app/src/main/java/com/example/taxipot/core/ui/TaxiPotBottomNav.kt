@@ -33,27 +33,39 @@ object TaxiPotBottomNav {
     }
 
     /** 다른 화면(홈·목록 등)의 '내 지갑' 버튼에서도 이걸 쓰면 지갑 화면이 여러 개 쌓이지 않는다 */
-    fun openWallet(activity: Activity) {
-        activity.startActivity(
-            Intent(activity, WalletActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-        )
-    }
+    fun openWallet(activity: Activity) = openTab(activity, WalletActivity::class.java, Tab.WALLET)
 
-    fun openMyPage(activity: Activity) {
-        activity.startActivity(
-            Intent(activity, MyPageActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-        )
-    }
+    fun openMyPage(activity: Activity) = openTab(activity, MyPageActivity::class.java, Tab.MY)
+
+    fun openHome(activity: Activity) = openTab(activity, PotMainActivity::class.java, Tab.HOME)
 
     /** 홈·지갑·마이페이지 상단의 종 아이콘 */
     fun openNotifications(activity: Activity) {
         activity.startActivity(Intent(activity, NotificationActivity::class.java))
     }
 
-    fun openHome(activity: Activity) {
-        activity.startActivity(
-            Intent(activity, PotMainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
-        )
+    /**
+     * 탭 이동 + 방향에 맞는 밀기 효과.
+     * 메뉴 순서(홈 → 내 지갑 → 마이페이지) 기준으로 오른쪽 탭으로 가면 지금 화면이 왼쪽으로 빠지고,
+     * 왼쪽 탭으로 가면 오른쪽으로 빠진다.
+     */
+    private fun openTab(activity: Activity, target: Class<out Activity>, targetTab: Tab) {
+        activity.startActivity(Intent(activity, target).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
+        val from = tabOf(activity) ?: return // 탭 화면이 아닌 곳에서 열면 기본 효과
+        if (from == targetTab) return
+        @Suppress("DEPRECATION")
+        if (targetTab.ordinal > from.ordinal) {
+            activity.overridePendingTransition(R.anim.taxipot_slide_in_right, R.anim.taxipot_slide_out_left)
+        } else {
+            activity.overridePendingTransition(R.anim.taxipot_slide_in_left, R.anim.taxipot_slide_out_right)
+        }
+    }
+
+    private fun tabOf(activity: Activity): Tab? = when (activity) {
+        is PotMainActivity -> Tab.HOME
+        is WalletActivity -> Tab.WALLET
+        is MyPageActivity -> Tab.MY
+        else -> null
     }
 
     private fun render(activity: Activity, icon: ImageView, label: TextView, selected: Boolean) {
