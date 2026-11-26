@@ -439,6 +439,13 @@ class WaitingRoomActivity : ComponentActivity() {
                 layer.addLabel(
                     LabelOptions.from("gather", LatLng.from(pot.departureLat, pot.departureLng)).setStyles(style)
                 )
+                // 도착지 말풍선
+                val endStyle = labelManager.addLabelStyles(
+                    LabelStyles.from(LabelStyle.from(bubbleBitmap("도착 · ${pot.destinationName}", 0.65f)))
+                )
+                layer.addLabel(
+                    LabelOptions.from("end", LatLng.from(pot.destinationLat, pot.destinationLng)).setStyles(endStyle)
+                )
             }
 
             override fun getPosition(): LatLng = LatLng.from(pot.departureLat, pot.departureLng)
