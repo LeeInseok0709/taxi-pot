@@ -13,6 +13,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.example.taxipot.core.ui.NotificationBadge
 import com.example.taxipot.core.ui.TaxiPotBottomNav
 import com.example.taxipot.databinding.ActivityMyPageBinding
 import com.example.taxipot.feature.account.MemberWithdrawActivity
@@ -86,6 +87,7 @@ class MyPageActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         viewModel.load()
+        NotificationBadge.refresh(this, binding.viewBellDot)
     }
 
     private fun render(state: MyPageUiState) {

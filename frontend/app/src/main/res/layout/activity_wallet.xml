@@ -34,14 +34,30 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <ImageButton
-            android:id="@+id/btnBell"
+        <!-- 알림 종 + 안 읽은 알림 점 -->
+        <FrameLayout
             android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="알림"
-            android:src="@drawable/ic_bell"
-            app:tint="@color/taxipot_text" />
+            android:layout_height="48dp">
+
+            <ImageButton
+                android:id="@+id/btnBell"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="알림"
+                android:src="@drawable/ic_bell"
+                app:tint="@color/taxipot_text" />
+
+            <View
+                android:id="@+id/viewBellDot"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="11dp"
+                android:background="@drawable/bg_taxipot_dot"
+                android:visibility="gone" />
+        </FrameLayout>
     </LinearLayout>
 
     <FrameLayout

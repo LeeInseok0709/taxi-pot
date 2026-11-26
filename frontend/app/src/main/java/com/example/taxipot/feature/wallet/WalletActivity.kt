@@ -19,6 +19,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.taxipot.R
+import com.example.taxipot.core.ui.NotificationBadge
 import com.example.taxipot.core.ui.TaxiPotBottomNav
 import com.example.taxipot.data.remote.dto.wallet.DebtResponse
 import com.example.taxipot.databinding.ActivityWalletBinding
@@ -88,6 +89,7 @@ class WalletActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         viewModel.refresh()
+        NotificationBadge.refresh(this, binding.viewBellDot)
     }
 
     private fun render(state: WalletUiState) {
