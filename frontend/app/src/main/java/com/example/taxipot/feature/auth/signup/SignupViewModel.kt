@@ -61,8 +61,8 @@ data class SignupUiState(
 )
 
 sealed interface SignupEvent {
-    /** 가입 완료 → 이메일 인증 화면으로 */
-    data object Done : SignupEvent
+    /** 가입 완료 → 이메일 인증 화면으로 (받는 메일 주소 표시용) */
+    data class Done(val email: String) : SignupEvent
     data class ScrollTo(val field: SignupField) : SignupEvent
     data class ShowMessage(val message: String) : SignupEvent
 }
@@ -223,7 +223,7 @@ class SignupViewModel : ViewModel() {
                     // 이메일 인증 API는 로그인 상태로 호출하므로 토큰을 바로 저장
                     ApiClient.tokenManager.saveTokens(result.data.accessToken, result.data.refreshToken)
                     _uiState.update { it.copy(isLoading = false) }
-                    _events.send(SignupEvent.Done)
+                    _events.send(SignupEvent.Done(result.data.user.email))
                 }
 
                 is ApiResult.Failure -> handleFailure(result)

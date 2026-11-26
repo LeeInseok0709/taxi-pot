@@ -1,5 +1,6 @@
 package com.example.taxipot.feature.auth.signup
 
+import android.content.Intent
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.View
@@ -18,13 +19,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.taxipot.R
 import com.example.taxipot.databinding.ActivitySignupBinding
+import com.example.taxipot.feature.auth.verification.EmailVerificationActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.launch
 
 /**
  * AU-01 회원가입 (Figma 01 회원가입 · 학생 인증)
- * 가입하면 학교 메일로 인증코드가 발송되고, 다음 화면은 AU-02 이메일 인증
+ * 가입하면 학교 메일로 인증코드가 발송되고, 다음 화면은 AU-02 이메일 인증 (가입·로그인 화면은 정리)
  */
 class SignupActivity : AppCompatActivity() {
 
@@ -219,9 +221,13 @@ class SignupActivity : AppCompatActivity() {
 
     private fun handleEvent(event: SignupEvent) {
         when (event) {
-            // TODO: AU-02 이메일 인증 화면 만들면 그 화면으로 이동
-            SignupEvent.Done -> {
-                showToast("가입 완료! 학교 메일로 인증코드를 보냈어요 (인증 화면 준비 중)")
+            // 가입 완료 → AU-02 이메일 인증 (인증코드가 방금 발송됨)
+            is SignupEvent.Done -> {
+                showToast("가입 완료! 학교 메일로 인증코드를 보냈어요.")
+                startActivity(
+                    EmailVerificationActivity.newIntent(this, event.email, justSent = true)
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                )
                 finish()
             }
             is SignupEvent.ScrollTo -> scrollTo(event.field)
@@ -250,7 +256,7 @@ class SignupActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val GENDER_FEMALE = "FEMALE"
-        private const val GENDER_MALE = "MALE"
+        private const val GENDER_FEMALE = "F"
+        private const val GENDER_MALE = "M"
     }
 }
