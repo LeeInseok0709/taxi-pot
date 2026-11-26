@@ -11,13 +11,15 @@ import android.graphics.drawable.GradientDrawable
  * 디자인 색상 모음 (색을 바꾸고 싶으면 여기만 고치면 됨)
  */
 object PotColors {
-    val BACKGROUND = 0xFFFBF7F0.toInt()  // 화면 배경 (크림색)
-    val CARD = 0xFFFFFDF9.toInt()        // 카드 배경
-    val LINE = 0xFFD9CBB5.toInt()        // 테두리 선
-    val ACCENT = 0xFFF1DEC0.toInt()      // 베이지 (버튼, 상태 칩, 잔액)
+    // 공통 색(res/values/colors_taxipot.xml)과 같은 값 — 피그마 최종본 기준
+    val BACKGROUND = 0xFFFFFDF9.toInt()  // 화면 배경 (taxipot_surface)
+    val CARD = 0xFFFFFDF9.toInt()        // 카드 배경 (taxipot_surface, 테두리로 구분)
+    val LINE = 0xFFC6B39A.toInt()        // 테두리 선 (taxipot_line)
+    val ACCENT = 0xFFF5D8B6.toInt()      // 버튼·상태 칩·잔액 (taxipot_primary)
+    val MUTED = 0xFFD8C6B3.toInt()       // 비활성·보조 채움 (taxipot_muted)
     val WHITE = 0xFFFFFFFF.toInt()
-    val TEXT = 0xFF2B2B2B.toInt()        // 기본 글자
-    val SUB_TEXT = 0xFF6B6B6B.toInt()    // 회색 글자
+    val TEXT = 0xFF3F3429.toInt()        // 기본 글자 (taxipot_text)
+    val SUB_TEXT = 0xFF6B5949.toInt()    // 보조 글자 (taxipot_sub_text)
 }
 
 /** dp 단위를 화면 픽셀로 바꾸기 */

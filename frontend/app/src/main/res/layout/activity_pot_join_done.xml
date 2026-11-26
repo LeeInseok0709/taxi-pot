@@ -3,7 +3,7 @@
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FBF7F0"
+    android:background="@color/taxipot_surface"
     android:orientation="vertical">
 
     <!-- 상단 바 -->
@@ -21,14 +21,14 @@
             android:layout_height="40dp"
             android:padding="8dp"
             android:src="@drawable/ic_back"
-            android:tint="#2B2B2B" />
+            android:tint="@color/taxipot_text" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:text="참여 완료"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="18sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -55,7 +55,7 @@
                 android:layout_marginTop="16dp"
                 android:gravity="center"
                 android:text="✓"
-                android:textColor="#2B2B2B"
+                android:textColor="@color/taxipot_text"
                 android:textSize="30sp" />
 
             <TextView
@@ -64,7 +64,7 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="16dp"
                 android:text="택시팟 참여가 완료됐어요!"
-                android:textColor="#2B2B2B"
+                android:textColor="@color/taxipot_text"
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
@@ -81,7 +81,7 @@
                     android:id="@+id/tvRoute"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="#2B2B2B"
+                    android:textColor="@color/taxipot_text"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -95,13 +95,13 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="출발 시각"
-                        android:textColor="#6B6B6B"
+                        android:textColor="@color/taxipot_sub_text"
                         android:textSize="13sp" />
                     <TextView
                         android:id="@+id/tvTimeValue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="#2B2B2B"
+                        android:textColor="@color/taxipot_text"
                         android:textSize="13sp" />
                 </LinearLayout>
 
@@ -115,13 +115,13 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="집결 기한"
-                        android:textColor="#6B6B6B"
+                        android:textColor="@color/taxipot_sub_text"
                         android:textSize="13sp" />
                     <TextView
                         android:id="@+id/tvGatherValue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="#2B2B2B"
+                        android:textColor="@color/taxipot_text"
                         android:textSize="13sp" />
                 </LinearLayout>
 
@@ -135,13 +135,13 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="내 좌석"
-                        android:textColor="#6B6B6B"
+                        android:textColor="@color/taxipot_sub_text"
                         android:textSize="13sp" />
                     <TextView
                         android:id="@+id/tvSeatValue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="#2B2B2B"
+                        android:textColor="@color/taxipot_text"
                         android:textSize="13sp" />
                 </LinearLayout>
 
@@ -155,13 +155,13 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="참여 인원"
-                        android:textColor="#6B6B6B"
+                        android:textColor="@color/taxipot_sub_text"
                         android:textSize="13sp" />
                     <TextView
                         android:id="@+id/tvMembersValue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="#2B2B2B"
+                        android:textColor="@color/taxipot_text"
                         android:textSize="13sp" />
                 </LinearLayout>
 
@@ -175,13 +175,13 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="예치액"
-                        android:textColor="#6B6B6B"
+                        android:textColor="@color/taxipot_sub_text"
                         android:textSize="13sp" />
                     <TextView
                         android:id="@+id/tvHoldValue"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="#2B2B2B"
+                        android:textColor="@color/taxipot_text"
                         android:textSize="13sp" />
                 </LinearLayout>
             </LinearLayout>
@@ -199,7 +199,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="ⓘ 집결 전 꼭 확인해주세요"
-                    android:textColor="#2B2B2B"
+                    android:textColor="@color/taxipot_text"
                     android:textSize="13sp"
                     android:textStyle="bold" />
 
@@ -209,7 +209,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:lineSpacingExtra="3dp"
-                    android:textColor="#6B6B6B"
+                    android:textColor="@color/taxipot_sub_text"
                     android:textSize="12sp" />
             </LinearLayout>
         </LinearLayout>
@@ -225,7 +225,7 @@
         android:layout_marginEnd="20dp"
         android:gravity="center"
         android:text="채팅 바로가기"
-        android:textColor="#2B2B2B"
+        android:textColor="@color/taxipot_text"
         android:textSize="15sp" />
 
     <TextView
@@ -238,7 +238,7 @@
         android:layout_marginBottom="12dp"
         android:gravity="center"
         android:text="대기실로 이동"
-        android:textColor="#2B2B2B"
+        android:textColor="@color/taxipot_text"
         android:textSize="15sp"
         android:textStyle="bold" />
 </LinearLayout>

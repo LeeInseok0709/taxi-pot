@@ -124,7 +124,7 @@ class PotJoinActivity : ComponentActivity() {
         // 4) 디자인
         binding.root.setBackgroundColor(PotColors.BACKGROUND)
         binding.carCard.background = roundedBg(PotColors.CARD, 40f, PotColors.LINE)
-        binding.seatDriver.background = roundedBg(0xFFEFE9DF.toInt(), 10f, PotColors.LINE)
+        binding.seatDriver.background = roundedBg(PotColors.MUTED, 10f, PotColors.LINE)
         binding.moneyCard.background = roundedBg(PotColors.CARD, 14f, PotColors.LINE)
         binding.warningCard.background = roundedBg(PotColors.CARD, 12f, PotColors.LINE)
         binding.btnJoin.background = roundedBg(PotColors.ACCENT, 12f)

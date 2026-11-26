@@ -154,7 +154,7 @@ class PotCreateActivity : ComponentActivity() {
     // 선택칸 글자: 값이 있으면 진한 글자, 없으면 회색 안내 글자
     private fun showValue(view: TextView, value: String?, placeholder: String) {
         view.text = value ?: placeholder
-        view.setTextColor(if (value != null) PotColors.TEXT else 0xFF9A9A9A.toInt())
+        view.setTextColor(if (value != null) PotColors.TEXT else PotColors.SUB_TEXT)
     }
 
     // 버튼 묶음 중 고른 것만 베이지로

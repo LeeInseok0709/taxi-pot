@@ -4,8 +4,19 @@ import com.example.taxipot.data.remote.dto.pot.PotDetailResponse
 import com.example.taxipot.data.remote.dto.pot.PotMemberResponse
 
 /** "2026-11-23T21:30:00+09:00" → "21:30" */
-fun clockOf(time: String): String =
-    if (time.length >= 16) time.substring(11, 16) else time
+fun clockOf(time: String): String {
+    if (time.length < 16) return time
+    val clock = time.substring(11, 16)
+    val day = time.substring(0, 10)
+    val format = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.KOREA)
+    val today = format.format(java.util.Date())
+    val tomorrow = format.format(java.util.Date(System.currentTimeMillis() + 86_400_000L))
+    return when (day) {
+        today -> clock                                   // 오늘: "21:30"
+        tomorrow -> "내일 $clock"                         // 내일: "내일 09:00"
+        else -> "${day.substring(5, 7).toInt()}/${day.substring(8, 10).toInt()} $clock"   // 그 외: "11/28 09:00"
+    }
+}
 
 /**
  * 서버 연결 전까지 쓸 가짜 상세 데이터
