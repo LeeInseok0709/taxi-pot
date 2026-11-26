@@ -15,6 +15,14 @@ public interface RatingRepository extends JpaRepository<Rating, Long> {
 
     boolean existsByPotIdAndReviewerIdAndRevieweeId(Long potId, Long reviewerId, Long revieweeId);
 
+    /**
+     * 방의 정산 완료 시각 = 그 방 SETTLEMENT.settled_at 의 최댓값 (운영자 청구 승인 시각, 명세 3.5.0). 정산 전이면 null.
+     * <p>평가 제출 마감(RatingService)과 스케줄러 7 기본값(findPotIdsMissingRatings)이 반드시 같은 기준을 써야 한다.
+     * 기준이 다르면 'API 는 아직 제출 가능한데 스케줄러가 먼저 ★3을 넣는' 틈이 생긴다.
+     */
+    @Query("select max(s.settledAt) from Settlement s where s.potId = :potId")
+    LocalDateTime findSettledAt(@Param("potId") Long potId);
+
     /** 방의 평가 행 전체 (스케줄러 7: 이미 있는 평가쌍을 빼고 기본값을 넣기 위해) */
     List<Rating> findAllByPotId(Long potId);
 
