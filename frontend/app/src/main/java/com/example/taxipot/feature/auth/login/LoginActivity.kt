@@ -18,6 +18,7 @@ import com.example.taxipot.databinding.ActivityLoginBinding
 import kotlinx.coroutines.launch
 import android.content.Intent
 import com.example.taxipot.feature.pot.main.PotMainActivity
+import com.example.taxipot.feature.auth.signup.SignupActivity
 
 class LoginActivity : AppCompatActivity() {
 
@@ -64,7 +65,9 @@ class LoginActivity : AppCompatActivity() {
         binding.etPassword.doAfterTextChanged { viewModel.clearPasswordError() }
 
         // TODO: 회원가입 화면 만들면 연결
-        binding.tvSignup.setOnClickListener { showToast("회원가입 (준비 중)") }
+        binding.tvSignup.setOnClickListener {
+            startActivity(Intent(this, SignupActivity::class.java))
+        }
     }
 
     private fun submit() {
