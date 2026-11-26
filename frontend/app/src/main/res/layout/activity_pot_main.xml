@@ -3,7 +3,7 @@
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FBF7F0"
+    android:background="@color/taxipot_surface"
     android:orientation="vertical">
 
     <!-- 상단 바: 택시 아이콘 + 택시팟 + 알림 -->
@@ -19,7 +19,7 @@
             android:layout_width="22dp"
             android:layout_height="22dp"
             android:src="@drawable/ic_taxi"
-            android:tint="#2B2B2B" />
+            android:tint="@color/taxipot_text" />
 
         <TextView
             android:layout_width="0dp"
@@ -27,7 +27,7 @@
             android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:text="택시팟"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -36,7 +36,7 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/ic_bell"
-            android:tint="#2B2B2B" />
+            android:tint="@color/taxipot_text" />
     </LinearLayout>
 
     <!-- 장소 검색 제목 + 잔액 -->
@@ -54,7 +54,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="장소 검색"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="13sp"
             android:textStyle="bold" />
 
@@ -67,7 +67,7 @@
             android:paddingEnd="10dp"
             android:paddingBottom="4dp"
             android:text="-P"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="12sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -84,7 +84,7 @@
         android:paddingStart="14dp"
         android:paddingEnd="14dp"
         android:text="지하철역 · 장소 검색"
-        android:textColor="#8A8A8A"
+        android:textColor="@color/taxipot_sub_text"
         android:textSize="14sp" />
 
     <!-- 지도 카드 + 현위치 버튼 -->
@@ -110,7 +110,7 @@
             android:layout_margin="10dp"
             android:padding="9dp"
             android:src="@drawable/ic_my_location"
-            android:tint="#2B2B2B" />
+            android:tint="@color/taxipot_text" />
     </FrameLayout>
 
     <!-- 내가 참여 중인 택시팟 (있을 때만, 누르면 대기실) -->
@@ -124,7 +124,7 @@
         android:ellipsize="end"
         android:maxLines="2"
         android:padding="14dp"
-        android:textColor="#2B2B2B"
+        android:textColor="@color/taxipot_text"
         android:textSize="14sp"
         android:textStyle="bold"
         android:visibility="gone" />
@@ -138,7 +138,7 @@
         android:layout_marginTop="20dp"
         android:layout_marginBottom="8dp"
         android:text="내 주변 모집 중 택시팟 0"
-        android:textColor="#2B2B2B"
+        android:textColor="@color/taxipot_text"
         android:textSize="16sp"
         android:textStyle="bold" />
 
@@ -151,7 +151,7 @@
         android:gravity="center"
         android:lineSpacingExtra="4dp"
         android:text="이 주변에 모집 중인 택시팟이 없어요\n아래 '방 만들기'로 직접 모아 보세요!"
-        android:textColor="#9A9A9A"
+        android:textColor="@color/taxipot_sub_text"
         android:textSize="14sp"
         android:visibility="gone" />
 
@@ -176,7 +176,7 @@
         android:layout_marginBottom="12dp"
         android:gravity="center"
         android:text="+ 방 만들기"
-        android:textColor="#2B2B2B"
+        android:textColor="@color/taxipot_text"
         android:textSize="15sp"
         android:textStyle="bold" />
 
@@ -184,7 +184,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#E6DCCB" />
+        android:background="@color/taxipot_muted" />
 
     <!-- 하단 메뉴 (모양만) -->
     <LinearLayout
@@ -207,14 +207,14 @@
                 android:paddingTop="4dp"
                 android:paddingBottom="4dp"
                 android:src="@drawable/ic_home"
-                android:tint="#2B2B2B" />
+                android:tint="@color/taxipot_text" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:text="홈 화면"
-                android:textColor="#2B2B2B"
+                android:textColor="@color/taxipot_text"
                 android:textSize="11sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -233,14 +233,14 @@
                 android:paddingTop="4dp"
                 android:paddingBottom="4dp"
                 android:src="@drawable/ic_wallet"
-                android:tint="#6B6B6B" />
+                android:tint="@color/taxipot_sub_text" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:text="내 지갑"
-                android:textColor="#6B6B6B"
+                android:textColor="@color/taxipot_sub_text"
                 android:textSize="11sp" />
         </LinearLayout>
 
@@ -258,14 +258,14 @@
                 android:paddingTop="4dp"
                 android:paddingBottom="4dp"
                 android:src="@drawable/ic_person"
-                android:tint="#6B6B6B" />
+                android:tint="@color/taxipot_sub_text" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:text="마이페이지"
-                android:textColor="#6B6B6B"
+                android:textColor="@color/taxipot_sub_text"
                 android:textSize="11sp" />
         </LinearLayout>
     </LinearLayout>

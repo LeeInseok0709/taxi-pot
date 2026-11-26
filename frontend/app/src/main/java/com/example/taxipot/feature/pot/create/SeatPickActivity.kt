@@ -72,7 +72,7 @@ class SeatPickActivity : ComponentActivity() {
         // 3) 디자인 (자동차는 둥근 큰 상자, 운전석은 회색)
         binding.root.setBackgroundColor(PotColors.BACKGROUND)
         binding.carCard.background = roundedBg(PotColors.CARD, 40f, PotColors.LINE)
-        binding.seatDriver.background = roundedBg(0xFFEFE9DF.toInt(), 10f, PotColors.LINE)
+        binding.seatDriver.background = roundedBg(PotColors.MUTED, 10f, PotColors.LINE)
         binding.moneyCard.background = roundedBg(PotColors.CARD, 14f, PotColors.LINE)
         binding.btnConfirm.background = roundedBg(PotColors.ACCENT, 12f)
 

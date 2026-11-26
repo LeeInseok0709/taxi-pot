@@ -3,7 +3,7 @@
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FBF7F0"
+    android:background="@color/taxipot_surface"
     android:orientation="vertical">
 
     <!-- 상단 바: 뒤로 가기 + 경로 (백석대 → 천안역) -->
@@ -21,7 +21,7 @@
             android:layout_height="40dp"
             android:padding="8dp"
             android:src="@drawable/ic_back"
-            android:tint="#2B2B2B" />
+            android:tint="@color/taxipot_text" />
 
         <TextView
             android:id="@+id/tvTitle"
@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:text="대기실"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="18sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -56,7 +56,7 @@
                 android:paddingTop="4dp"
                 android:paddingEnd="10dp"
                 android:paddingBottom="4dp"
-                android:textColor="#2B2B2B"
+                android:textColor="@color/taxipot_text"
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
@@ -100,13 +100,13 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="빈자리"
-                        android:textColor="#6B6B6B"
+                        android:textColor="@color/taxipot_sub_text"
                         android:textSize="13sp" />
                     <TextView
                         android:id="@+id/tvVacancy"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="#2B2B2B"
+                        android:textColor="@color/taxipot_text"
                         android:textSize="13sp" />
                 </LinearLayout>
             </LinearLayout>
@@ -126,7 +126,7 @@
                     android:layout_marginEnd="8dp"
                     android:gravity="center"
                     android:text="방 수정"
-                    android:textColor="#2B2B2B"
+                    android:textColor="@color/taxipot_text"
                     android:textSize="14sp" />
 
                 <TextView
@@ -136,7 +136,7 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:text="채팅"
-                    android:textColor="#2B2B2B"
+                    android:textColor="@color/taxipot_text"
                     android:textSize="14sp" />
             </LinearLayout>
 
@@ -155,7 +155,7 @@
                     android:layout_marginEnd="8dp"
                     android:gravity="center"
                     android:text="방 취소"
-                    android:textColor="#2B2B2B"
+                    android:textColor="@color/taxipot_text"
                     android:textSize="14sp" />
 
                 <TextView
@@ -165,7 +165,7 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:text="입장 요청"
-                    android:textColor="#2B2B2B"
+                    android:textColor="@color/taxipot_text"
                     android:textSize="14sp" />
             </LinearLayout>
 
@@ -177,7 +177,7 @@
                 android:layout_marginTop="12dp"
                 android:padding="12dp"
                 android:text="ⓘ 도착 확인은 GPS 반경 50m 이내에서 가능합니다."
-                android:textColor="#6B6B6B"
+                android:textColor="@color/taxipot_sub_text"
                 android:textSize="12sp" />
         </LinearLayout>
     </ScrollView>
@@ -198,7 +198,7 @@
             android:layout_marginTop="8dp"
             android:gravity="center"
             android:text="도착 확인 (50m 이내)"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="15sp" />
 
         <TextView
@@ -208,7 +208,7 @@
             android:layout_marginTop="8dp"
             android:gravity="center"
             android:text="탑승 시작 (전원 도착 시)"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="15sp"
             android:textStyle="bold" />
     </LinearLayout>

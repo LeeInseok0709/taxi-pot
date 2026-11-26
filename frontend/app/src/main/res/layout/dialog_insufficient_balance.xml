@@ -10,7 +10,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="잔액이 부족합니다"
-        android:textColor="#2B2B2B"
+        android:textColor="@color/taxipot_text"
         android:textSize="18sp"
         android:textStyle="bold" />
 
@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
         android:text="예치에 필요한 포인트를 충전해주세요."
-        android:textColor="#6B6B6B"
+        android:textColor="@color/taxipot_sub_text"
         android:textSize="13sp" />
 
     <LinearLayout
@@ -32,13 +32,13 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="필요 예치액"
-            android:textColor="#6B6B6B"
+            android:textColor="@color/taxipot_sub_text"
             android:textSize="13sp" />
         <TextView
             android:id="@+id/tvRequired"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="13sp" />
     </LinearLayout>
 
@@ -52,13 +52,13 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="현재 잔액"
-            android:textColor="#6B6B6B"
+            android:textColor="@color/taxipot_sub_text"
             android:textSize="13sp" />
         <TextView
             android:id="@+id/tvBalance"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="13sp" />
     </LinearLayout>
 
@@ -72,13 +72,13 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="부족 금액"
-            android:textColor="#6B6B6B"
+            android:textColor="@color/taxipot_sub_text"
             android:textSize="13sp" />
         <TextView
             android:id="@+id/tvShortage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="13sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -97,7 +97,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="닫기"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="14sp" />
 
         <TextView
@@ -108,7 +108,7 @@
             android:layout_marginStart="10dp"
             android:gravity="center"
             android:text="충전하기"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="14sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -126,7 +126,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="ⓘ 참여 불가 사유별 안내"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="13sp"
             android:textStyle="bold" />
 
@@ -136,7 +136,7 @@
             android:layout_marginTop="6dp"
             android:lineSpacingExtra="3dp"
             android:text="정지 중 / 인증 미완료\n진행 중 방 존재 / 성별 제한\n모집 마감 / 미수금 미납\n참여 마감 → 입장 요청"
-            android:textColor="#6B6B6B"
+            android:textColor="@color/taxipot_sub_text"
             android:textSize="12sp" />
     </LinearLayout>
 </LinearLayout>

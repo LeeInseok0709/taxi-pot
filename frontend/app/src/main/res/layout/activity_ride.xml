@@ -3,7 +3,7 @@
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FBF7F0"
+    android:background="@color/taxipot_surface"
     android:orientation="vertical">
 
     <!-- 상단 바: 뒤로 가기 + 탑승 중 -->
@@ -21,14 +21,14 @@
             android:layout_height="40dp"
             android:padding="8dp"
             android:src="@drawable/ic_back"
-            android:tint="#2B2B2B" />
+            android:tint="@color/taxipot_text" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:text="탑승 중"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="18sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -55,7 +55,7 @@
                 android:paddingTop="4dp"
                 android:paddingEnd="10dp"
                 android:paddingBottom="4dp"
-                android:textColor="#2B2B2B"
+                android:textColor="@color/taxipot_text"
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
@@ -65,7 +65,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:textColor="#2B2B2B"
+                android:textColor="@color/taxipot_text"
                 android:textSize="17sp"
                 android:textStyle="bold" />
 
@@ -96,7 +96,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="함께 탄 사람"
-                    android:textColor="#2B2B2B"
+                    android:textColor="@color/taxipot_text"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
@@ -115,7 +115,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="택시 부르기"
-                android:textColor="#2B2B2B"
+                android:textColor="@color/taxipot_text"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -132,7 +132,7 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:text="카카오 T"
-                    android:textColor="#2B2B2B"
+                    android:textColor="@color/taxipot_text"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
@@ -144,7 +144,7 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:text="우버"
-                    android:textColor="#2B2B2B"
+                    android:textColor="@color/taxipot_text"
                     android:textSize="14sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -157,7 +157,7 @@
                 android:layout_marginTop="8dp"
                 android:gravity="center"
                 android:text="채팅"
-                android:textColor="#2B2B2B"
+                android:textColor="@color/taxipot_text"
                 android:textSize="14sp" />
 
             <!-- 안내 (정산 방법 / 청구 상태) -->
@@ -168,7 +168,7 @@
                 android:layout_marginTop="12dp"
                 android:lineSpacingExtra="3dp"
                 android:padding="14dp"
-                android:textColor="#6B6B6B"
+                android:textColor="@color/taxipot_sub_text"
                 android:textSize="12sp" />
         </LinearLayout>
     </ScrollView>
@@ -183,7 +183,7 @@
         android:layout_marginBottom="12dp"
         android:gravity="center"
         android:text="하차 · 실요금 청구"
-        android:textColor="#2B2B2B"
+        android:textColor="@color/taxipot_text"
         android:textSize="15sp"
         android:textStyle="bold" />
 </LinearLayout>
