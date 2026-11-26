@@ -59,6 +59,8 @@ class PotMainActivity : ComponentActivity() {
         }
     }
     private var pots: List<PotSummaryResponse> = emptyList()   // 지금 화면에 보여주는 방 목록
+    // 목록 제목에 쓸 기준 장소 ("천안역" → "천안역 주변 모집 중 택시팟")
+    private var areaName = "백석대학교"
 
     // 택시팟 목록 불러오기 담당 (목록 화면과 같이 사용)
     private val viewModel: PotListViewModel by viewModels()
@@ -189,6 +191,12 @@ class PotMainActivity : ComponentActivity() {
                 kakaoMap = map
                 drawMarkers()   // 지도가 준비되면 핀 찍기
 
+
+                // 위치 권한·GPS가 켜져 있으면 처음부터 내 위치 기준으로
+                if (LocationHelper.hasPermission(this@PotMainActivity) && LocationHelper.isLocationOn(this@PotMainActivity)) {
+                    moveToMyLocation(silent = true)
+                }
+
                 // 핀을 눌렀을 때: 목록에서 그 방으로 스크롤
                 map.setOnLabelClickListener { _, _, label ->
                     val potId = label.tag as? Long
@@ -215,7 +223,9 @@ class PotMainActivity : ComponentActivity() {
     private fun showPots(newPots: List<PotSummaryResponse>) {
         pots = newPots
         adapter.submitList(newPots)
-        binding.tvNearbyTitle.text = "내 주변 모집 중 택시팟 ${newPots.size}  ›"
+        val area = if (areaName.length > 12) areaName.take(12) + "…" else areaName
+        binding.tvNearbyTitle.text = "$area 주변 모집 중 택시팟 ${newPots.size}  ›"
+        binding.tvEmpty.visibility = if (newPots.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
         drawMarkers()
     }
 
@@ -334,21 +344,39 @@ class PotMainActivity : ComponentActivity() {
         }
     }
 
+    // 홈 위쪽 "내가 참여 중인 택시팟" 띠 (누르면 대기실 → 탑승 중이면 탑승 화면으로 자동 이동)
+    private fun showMyPot(pot: com.example.taxipot.data.remote.dto.user.MyPotHistoryResponse?) {
+        if (pot == null) {
+            binding.tvMyPot.visibility = android.view.View.GONE
+            return
+        }
+        val state = if (pot.potStatus == "RUNNING") "탑승 중"
+        else "출발: ${com.example.taxipot.feature.pot.data.clockOf(pot.departureTime ?: "")}"
+        binding.tvMyPot.text = "내가 참여 중인 택시팟  ›\n${pot.departureName} → ${pot.destinationName}\n$state"
+        binding.tvMyPot.maxLines = 4   // 세 줄 + 장소 이름이 길 때 한 줄 여유
+        binding.tvMyPot.background = roundedBg(PotColors.ACCENT, 12f)
+        binding.tvMyPot.visibility = android.view.View.VISIBLE
+        binding.tvMyPot.setOnClickListener {
+            startActivity(com.example.taxipot.feature.pot.room.WaitingRoomActivity.newIntent(this, pot.potId))
+        }
+    }
+
     // 검색한 장소로 지도 이동 + 그 근처(반경 1km) 방 목록 불러오기
     private fun searchAt(name: String, lat: Double, lng: Double) {
         binding.tvSearch.text = name
+        areaName = name
         moveCamera(lat, lng)
         viewModel.load(PotFilter(), lat, lng)
     }
 
     // 현재 위치를 찾아서 지도를 그곳으로 옮기기
-    private fun moveToMyLocation() {
+    private fun moveToMyLocation(silent: Boolean = false) {
         if (!LocationHelper.isLocationOn(this)) {
             showToast("휴대폰 설정에서 위치(GPS)를 켜 주세요")
             return
         }
 
-        showToast("내 위치를 찾는 중...")
+        if (!silent) showToast("내 위치를 찾는 중...")
         LocationHelper.getCurrentLocation(this) { location ->
             if (location == null) {
                 showToast("내 위치를 찾지 못했어요. 잠시 후 다시 눌러 주세요")
@@ -359,6 +387,7 @@ class PotMainActivity : ComponentActivity() {
 
             // 내 위치 근처 방 목록 다시 불러오기
             binding.tvSearch.text = "내 위치 주변"
+            areaName = "내"
             viewModel.load(PotFilter(), location.latitude, location.longitude)
         }
     }
@@ -373,6 +402,10 @@ class PotMainActivity : ComponentActivity() {
         // 잔액은 지갑 API로 (지갑·충전·출금 후 돌아와도 최신 값)
         lifecycleScope.launch {
             WalletBalance.refresh()?.let { binding.tvBalance.text = "%,dP".format(it) }
+
+            // 참여 중인 택시팟이 있으면 목록 위에 띄우기
+            lifecycleScope.launch { showMyPot(com.example.taxipot.feature.pot.data.PotRepository.myActivePot()) }
+
         }
     }
 

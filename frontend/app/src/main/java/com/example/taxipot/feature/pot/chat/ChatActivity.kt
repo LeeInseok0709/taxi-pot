@@ -130,6 +130,15 @@ class ChatActivity : ComponentActivity() {
                     binding.btnSend.isEnabled = !state.sending
                     binding.btnSend.text = if (state.sending) "..." else "전송"
 
+                    // 전송 실패한 메시지는 입력칸에 되돌리기
+                    state.failedText?.let {
+                        if (binding.etMessage.text.isNullOrEmpty()) {
+                            binding.etMessage.setText(it)
+                            binding.etMessage.setSelection(it.length)
+                        }
+                        viewModel.failedTextShown()
+                    }
+
                     state.message?.let {
                         showToast(it)
                         viewModel.messageShown()

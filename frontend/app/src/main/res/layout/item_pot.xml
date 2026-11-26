@@ -21,7 +21,7 @@
             android:paddingTop="3dp"
             android:paddingEnd="8dp"
             android:paddingBottom="3dp"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="11sp"
             android:textStyle="bold" />
 
@@ -34,7 +34,7 @@
             android:id="@+id/tvTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="15sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -45,7 +45,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:textColor="#2B2B2B"
+        android:textColor="@color/taxipot_text"
         android:textSize="17sp"
         android:textStyle="bold" />
 
@@ -61,14 +61,14 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="참여 인원"
-            android:textColor="#6B6B6B"
+            android:textColor="@color/taxipot_sub_text"
             android:textSize="13sp" />
 
         <TextView
             android:id="@+id/tvMembers"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="13sp" />
     </LinearLayout>
 
@@ -84,14 +84,14 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="예상 총 요금"
-            android:textColor="#6B6B6B"
+            android:textColor="@color/taxipot_sub_text"
             android:textSize="13sp" />
 
         <TextView
             android:id="@+id/tvFare"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="13sp" />
     </LinearLayout>
 
@@ -101,13 +101,13 @@
         android:layout_height="1dp"
         android:layout_marginTop="12dp"
         android:layout_marginBottom="10dp"
-        android:background="#E6DCCB" />
+        android:background="@color/taxipot_muted" />
 
     <!-- 방장 정보 -->
     <TextView
         android:id="@+id/tvHostInfo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#6B6B6B"
+        android:textColor="@color/taxipot_sub_text"
         android:textSize="12sp" />
 </LinearLayout>

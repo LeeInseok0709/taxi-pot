@@ -3,7 +3,7 @@
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FBF7F0"
+    android:background="@color/taxipot_surface"
     android:orientation="vertical">
 
     <!-- 상단 바: 택시 아이콘 + 내 주변 택시팟 + 알림 -->
@@ -19,7 +19,7 @@
             android:layout_width="22dp"
             android:layout_height="22dp"
             android:src="@drawable/ic_taxi"
-            android:tint="#2B2B2B" />
+            android:tint="@color/taxipot_text" />
 
         <TextView
             android:layout_width="0dp"
@@ -27,7 +27,7 @@
             android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:text="내 주변 택시팟"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -36,7 +36,7 @@
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:src="@drawable/ic_bell"
-            android:tint="#2B2B2B" />
+            android:tint="@color/taxipot_text" />
     </LinearLayout>
 
     <!-- 성별 · 인원 · 정렬 버튼 -->
@@ -55,7 +55,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="성별 ▾"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="13sp" />
 
         <TextView
@@ -66,7 +66,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="인원 ▾"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="13sp" />
 
         <TextView
@@ -77,7 +77,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="정렬: 출발순"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="13sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -104,14 +104,14 @@
         android:layout_marginBottom="12dp"
         android:padding="12dp"
         android:text="ⓘ  결원 발생 방은 '결원' 표시로 구분하고 목록 상단에 고정합니다."
-        android:textColor="#6B6B6B"
+        android:textColor="@color/taxipot_sub_text"
         android:textSize="12sp" />
 
     <!-- 하단 메뉴 위 구분선 -->
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#E6DCCB" />
+        android:background="@color/taxipot_muted" />
 
     <!-- 하단 메뉴 (홈 화면 선택 상태) -->
     <LinearLayout
@@ -134,14 +134,14 @@
                 android:paddingTop="4dp"
                 android:paddingBottom="4dp"
                 android:src="@drawable/ic_home"
-                android:tint="#2B2B2B" />
+                android:tint="@color/taxipot_text" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:text="홈 화면"
-                android:textColor="#2B2B2B"
+                android:textColor="@color/taxipot_text"
                 android:textSize="11sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -160,14 +160,14 @@
                 android:paddingTop="4dp"
                 android:paddingBottom="4dp"
                 android:src="@drawable/ic_wallet"
-                android:tint="#6B6B6B" />
+                android:tint="@color/taxipot_sub_text" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:text="내 지갑"
-                android:textColor="#6B6B6B"
+                android:textColor="@color/taxipot_sub_text"
                 android:textSize="11sp" />
         </LinearLayout>
 
@@ -185,14 +185,14 @@
                 android:paddingTop="4dp"
                 android:paddingBottom="4dp"
                 android:src="@drawable/ic_person"
-                android:tint="#6B6B6B" />
+                android:tint="@color/taxipot_sub_text" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:text="마이페이지"
-                android:textColor="#6B6B6B"
+                android:textColor="@color/taxipot_sub_text"
                 android:textSize="11sp" />
         </LinearLayout>
     </LinearLayout>

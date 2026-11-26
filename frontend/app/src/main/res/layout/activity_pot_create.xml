@@ -3,7 +3,7 @@
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FBF7F0"
+    android:background="@color/taxipot_surface"
     android:orientation="vertical">
 
     <!-- 상단 바: 뒤로 가기 + 방 만들기 -->
@@ -21,14 +21,14 @@
             android:layout_height="40dp"
             android:padding="8dp"
             android:src="@drawable/ic_back"
-            android:tint="#2B2B2B" />
+            android:tint="@color/taxipot_text" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:text="방 만들기"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="18sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -52,7 +52,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="방 제목"
-                android:textColor="#2B2B2B"
+                android:textColor="@color/taxipot_text"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
@@ -66,8 +66,8 @@
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
                 android:singleLine="true"
-                android:textColor="#2B2B2B"
-                android:textColorHint="#9A9A9A"
+                android:textColor="@color/taxipot_text"
+                android:textColorHint="@color/taxipot_sub_text"
                 android:textSize="14sp"
                 android:maxLength="100" />
 
@@ -76,7 +76,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
                 android:text="출발지"
-                android:textColor="#2B2B2B"
+                android:textColor="@color/taxipot_text"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
@@ -89,7 +89,7 @@
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
                 android:text="출발지 선택 (지도 핀)  ›"
-                android:textColor="#9A9A9A"
+                android:textColor="@color/taxipot_sub_text"
                 android:textSize="14sp" />
 
             <TextView
@@ -97,7 +97,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
                 android:text="목적지"
-                android:textColor="#2B2B2B"
+                android:textColor="@color/taxipot_text"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
@@ -110,7 +110,7 @@
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
                 android:text="목적지 선택 (지도 핀)  ›"
-                android:textColor="#9A9A9A"
+                android:textColor="@color/taxipot_sub_text"
                 android:textSize="14sp" />
 
             <TextView
@@ -118,7 +118,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
                 android:text="출발 시각"
-                android:textColor="#2B2B2B"
+                android:textColor="@color/taxipot_text"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
@@ -131,7 +131,7 @@
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
                 android:text="출발 시각 선택  ›"
-                android:textColor="#9A9A9A"
+                android:textColor="@color/taxipot_sub_text"
                 android:textSize="14sp" />
 
             <TextView
@@ -139,7 +139,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:text="출발 15분 ~ 24시간 이내"
-                android:textColor="#6B6B6B"
+                android:textColor="@color/taxipot_sub_text"
                 android:textSize="11sp" />
 
             <TextView
@@ -149,7 +149,7 @@
                 android:layout_marginTop="10dp"
                 android:padding="12dp"
                 android:text="ⓘ 집결 · 참여 마감은 출발 5분 전 자동 설정됩니다."
-                android:textColor="#6B6B6B"
+                android:textColor="@color/taxipot_sub_text"
                 android:textSize="12sp" />
 
             <TextView
@@ -157,7 +157,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
                 android:text="모집 인원 (방장 포함)"
-                android:textColor="#2B2B2B"
+                android:textColor="@color/taxipot_text"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
@@ -174,7 +174,7 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:text="3명 (권장)"
-                    android:textColor="#2B2B2B"
+                    android:textColor="@color/taxipot_text"
                     android:textSize="13sp" />
 
                 <TextView
@@ -185,7 +185,7 @@
                     android:layout_marginStart="8dp"
                     android:gravity="center"
                     android:text="4명"
-                    android:textColor="#2B2B2B"
+                    android:textColor="@color/taxipot_text"
                     android:textSize="13sp" />
             </LinearLayout>
 
@@ -194,7 +194,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
                 android:text="성별 옵션"
-                android:textColor="#2B2B2B"
+                android:textColor="@color/taxipot_text"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
@@ -211,7 +211,7 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:text="제한없음"
-                    android:textColor="#2B2B2B"
+                    android:textColor="@color/taxipot_text"
                     android:textSize="13sp" />
 
                 <TextView
@@ -222,7 +222,7 @@
                     android:layout_marginStart="8dp"
                     android:gravity="center"
                     android:text="여성전용"
-                    android:textColor="#2B2B2B"
+                    android:textColor="@color/taxipot_text"
                     android:textSize="13sp" />
 
                 <TextView
@@ -233,7 +233,7 @@
                     android:layout_marginStart="8dp"
                     android:gravity="center"
                     android:text="남성전용"
-                    android:textColor="#2B2B2B"
+                    android:textColor="@color/taxipot_text"
                     android:textSize="13sp" />
             </LinearLayout>
 
@@ -242,7 +242,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
                 android:text="예상 총 요금"
-                android:textColor="#2B2B2B"
+                android:textColor="@color/taxipot_text"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
@@ -256,8 +256,8 @@
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
                 android:singleLine="true"
-                android:textColor="#2B2B2B"
-                android:textColorHint="#9A9A9A"
+                android:textColor="@color/taxipot_text"
+                android:textColorHint="@color/taxipot_sub_text"
                 android:textSize="14sp"
                 android:maxLength="6" />
 
@@ -267,7 +267,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:text="원 단위 · 50만 원 이하"
-                android:textColor="#6B6B6B"
+                android:textColor="@color/taxipot_sub_text"
                 android:textSize="11sp" />
 
             <TextView
@@ -275,7 +275,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
                 android:text="내 희망 좌석"
-                android:textColor="#2B2B2B"
+                android:textColor="@color/taxipot_text"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
@@ -288,7 +288,7 @@
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
                 android:text="조수석  ›"
-                android:textColor="#9A9A9A"
+                android:textColor="@color/taxipot_sub_text"
                 android:textSize="14sp" />
 
             <TextView
@@ -296,7 +296,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
                 android:text="오픈채팅 링크 (선택)"
-                android:textColor="#2B2B2B"
+                android:textColor="@color/taxipot_text"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
@@ -310,8 +310,8 @@
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
                 android:singleLine="true"
-                android:textColor="#2B2B2B"
-                android:textColorHint="#9A9A9A"
+                android:textColor="@color/taxipot_text"
+                android:textColorHint="@color/taxipot_sub_text"
                 android:textSize="14sp"
                 android:maxLength="500" />
         </LinearLayout>
@@ -328,7 +328,7 @@
         android:layout_marginBottom="12dp"
         android:gravity="center"
         android:text="다음"
-        android:textColor="#2B2B2B"
+        android:textColor="@color/taxipot_text"
         android:textSize="15sp"
         android:textStyle="bold" />
 </LinearLayout>
