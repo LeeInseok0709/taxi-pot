@@ -36,6 +36,7 @@ import com.kakao.vectormap.label.LabelOptions
 import com.kakao.vectormap.label.LabelStyle
 import com.kakao.vectormap.label.LabelStyles
 import java.security.MessageDigest
+import com.example.taxipot.core.ui.TaxiPotBottomNav
 
 /**
  * EX-01 홈 화면 (지도 + 방 카드 목록)
@@ -116,7 +117,7 @@ class PotMainActivity : ComponentActivity() {
         binding.btnCreatePot.setOnClickListener {
             startActivity(android.content.Intent(this, com.example.taxipot.feature.pot.create.PotCreateActivity::class.java))
         }
-        binding.navWallet.setOnClickListener { showToast("내 지갑 (준비 중)") }
+        binding.navWallet.setOnClickListener { TaxiPotBottomNav.openWallet(this) }
         binding.navMy.setOnClickListener { showToast("마이페이지 (준비 중)") }
 
         // 9) 목록 제목을 누르면 전체 목록(EX-02)으로 이동

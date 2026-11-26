@@ -21,6 +21,7 @@ import com.example.taxipot.feature.pot.filter.PotFilterActivity
 import com.example.taxipot.feature.pot.main.PotColors
 import com.example.taxipot.feature.pot.main.PotListAdapter
 import com.example.taxipot.feature.pot.main.roundedBg
+import com.example.taxipot.core.ui.TaxiPotBottomNav
 
 /**
  * EX-02 내 주변 택시팟 (전체 목록)
@@ -89,7 +90,7 @@ class PotListActivity : ComponentActivity() {
         // 6) 그 외 버튼
         binding.btnBell.setOnClickListener { showToast("알림 (준비 중)") }
         binding.navHome.setOnClickListener { finish() }   // 홈 화면으로 돌아가기
-        binding.navWallet.setOnClickListener { showToast("내 지갑 (준비 중)") }
+        binding.navWallet.setOnClickListener { TaxiPotBottomNav.openWallet(this) }
         binding.navMy.setOnClickListener { showToast("마이페이지 (준비 중)") }
 
         // 7) 목록 불러오기

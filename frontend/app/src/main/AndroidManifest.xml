@@ -90,6 +90,9 @@
         <activity
             android:name=".feature.auth.verification.VerificationStatusActivity"
             android:exported="false" />
+        <activity
+            android:name=".feature.wallet.WalletActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
