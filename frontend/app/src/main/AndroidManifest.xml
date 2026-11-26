@@ -79,6 +79,17 @@
             android:name=".feature.auth.signup.SignupActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".feature.auth.verification.EmailVerificationActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".feature.auth.verification.CaptureVerificationActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".feature.auth.verification.VerificationStatusActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

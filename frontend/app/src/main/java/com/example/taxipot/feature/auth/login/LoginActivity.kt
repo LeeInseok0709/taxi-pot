@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import android.content.Intent
 import com.example.taxipot.feature.pot.main.PotMainActivity
 import com.example.taxipot.feature.auth.signup.SignupActivity
+import com.example.taxipot.feature.auth.verification.VerificationStatusActivity
 
 class LoginActivity : AppCompatActivity() {
 
@@ -111,8 +112,12 @@ class LoginActivity : AppCompatActivity() {
                 )
                 finish()
             }
-            // TODO: 학생 인증 화면 만들면 연결
-            LoginEvent.GoVerification -> showToast("로그인 성공 · 학생 인증이 필요해요 (인증 화면 준비 중)")
+            // 학생 인증이 안 끝났으면 인증 상태(AU-04)에서 남은 단계로 이동
+            LoginEvent.GoVerification -> {
+                showToast("학생 인증을 마저 진행해 주세요.")
+                startActivity(VerificationStatusActivity.newIntent(this))
+                finish()
+            }
         }
     }
     private fun showToast(message: String) {
