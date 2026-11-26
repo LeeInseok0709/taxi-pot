@@ -13,6 +13,8 @@ app:
   admin:
     email: admin@taxipot.local
     password: admin1234!
+  upload:
+    dir: ./uploads               # 캡처본·영수증 저장 폴더 (없으면 서버가 만든다)
   security:
     debug-header-enabled: true   # Swagger 의 X-Debug-User-Id 로 토큰 없이 호출
   scheduler:

@@ -20,7 +20,15 @@ JDK 17 이상(17·21 모두 가능, 결과물은 Java 17 호환), MySQL 8.0.16 �
    ```
    `--default-character-set=utf8mb4`를 빼면 한글 COMMENT와 '탈퇴회원_' CHECK가 깨질 수 있습니다. 실제 학교로 바꾸려면 `UNIVERSITY` 테이블을 수정하세요(예시로 '한국대학교 / university.ac.kr' 1건이 들어 있습니다).
 3. **IntelliJ로 열기**: `File > Open`에서 이 폴더를 고르고 Gradle 프로젝트로 엽니다. `Settings > Build, Execution, Deployment > Build Tools > Gradle`에서 Gradle JVM을 17 이상으로 맞추고, `Settings > Build > Compiler > Annotation Processors`에서 `Enable annotation processing`을 켭니다(Lombok).
-4. **실행**: `TaxipotApplication`을 실행하면 기본 프로필 `local`로 뜹니다. 로그에 `Started TaxipotApplication`이 나오고, 처음 실행이면 `운영자 계정 생성: admin@taxipot.local`도 나옵니다.
+4. **로컬 설정 파일 만들기**: `src/main/resources/application-local.yml.example`을 같은 폴더에 복사하고 이름을 `application-local.yml`로 바꿉니다. JWT 비밀키·AES 키·운영자 계정이 이 파일에 들어 있어서, 빠뜨리면 서버가 뜨지 않습니다. 이 파일은 `.gitignore`에 등록돼 있으니 커밋하지 않습니다.
+   ```bash
+   # Mac·리눅스
+   cp src/main/resources/application-local.yml.example src/main/resources/application-local.yml
+   # Windows (cmd)
+   copy src\main\resources\application-local.yml.example src\main\resources\application-local.yml
+   ```
+   DB 계정을 1단계와 다르게 만들었다면 `spring.datasource.username`·`password`만 고칩니다.
+5. **실행**: `TaxipotApplication`을 실행하면 기본 프로필 `local`로 뜹니다. 로그에 `Started TaxipotApplication`이 나오고, 처음 실행이면 `운영자 계정 생성: admin@taxipot.local`도 나옵니다.
 
 서버가 뜨지 않고 `Schema-validation: wrong column type ...` 또는 `missing table ...`이 나오면 Entity와 DB가 어긋난 것입니다. 일부러 `ddl-auto: validate`로 둬서 바로 알 수 있게 했습니다. 대부분은 2단계를 빠뜨렸거나 예전 스키마가 남아 있는 경우이니 `db/reset-local.sql`로 DB를 비우고 2단계부터 다시 하세요.
 

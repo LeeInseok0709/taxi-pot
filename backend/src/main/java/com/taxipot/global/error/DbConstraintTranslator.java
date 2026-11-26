@@ -78,9 +78,9 @@ public class DbConstraintTranslator {
         if (name.startsWith("chk_payment")) {
             return ErrorCode.INVALID_PAYMENT_STATUS;
         }
-        if (name.startsWith("chk_wallet") || name.equals("chk_point_history_balance_after_rng")) {
-            return ErrorCode.INSUFFICIENT_BALANCE;
-        }
+        // 지갑·잔액 CHECK 위반도 INVALID_INPUT 으로 보낸다.
+        // INSUFFICIENT_BALANCE 는 명세상 detail(requiredAmount·balance·shortageAmount)이 필수인데 여기서는 채울 수 없어
+        // 앱 팝업이 깨진다. CHECK 위반은 서버 검증 누락(버그)이므로 ERROR 로그로 원인을 찾는다.
         return ErrorCode.INVALID_INPUT;
     }
 
