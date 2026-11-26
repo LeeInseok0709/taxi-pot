@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ST-03 신고하기 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/taxipot_surface"
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/appBar"
+        layout="@layout/view_taxipot_app_bar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="20dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="24dp">
+
+            <TextView
+                android:id="@+id/tvTarget"
+                style="@style/TaxiPot.Title" />
+
+            <!-- 신고 유형 -->
+            <TextView
+                style="@style/TaxiPot.Label"
+                android:layout_marginTop="24dp"
+                android:text="신고 유형" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/optNoShow"
+                    style="@style/TaxiPot.Option"
+                    android:text="노쇼"
+                    android:textSize="13sp" />
+
+                <Space
+                    android:layout_width="8dp"
+                    android:layout_height="0dp" />
+
+                <TextView
+                    android:id="@+id/optAbusive"
+                    style="@style/TaxiPot.Option"
+                    android:text="불쾌한 언행"
+                    android:textSize="13sp" />
+
+                <Space
+                    android:layout_width="8dp"
+                    android:layout_height="0dp" />
+
+                <TextView
+                    android:id="@+id/optEtc"
+                    style="@style/TaxiPot.Option"
+                    android:text="기타"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvTypeError"
+                style="@style/TaxiPot.ErrorText" />
+
+            <!-- 신고 사유 -->
+            <TextView
+                style="@style/TaxiPot.Label"
+                android:layout_marginTop="20dp"
+                android:text="신고 사유" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilReason"
+                style="@style/TaxiPot.Field"
+                app:counterEnabled="true"
+                app:counterMaxLength="255"
+                app:counterTextColor="@color/taxipot_sub_text">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etReason"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="top|start"
+                    android:hint="신고 사유를 입력해주세요"
+                    android:inputType="textMultiLine"
+                    android:maxLength="255"
+                    android:minLines="6"
+                    android:padding="14dp"
+                    android:textColor="@color/taxipot_text"
+                    android:textColorHint="@color/taxipot_sub_text"
+                    android:textSize="14sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 안내 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_taxipot_box"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginTop="1dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_info_outline"
+                    app:tint="@color/taxipot_text" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="신고 전 확인해주세요"
+                        android:textColor="@color/taxipot_text"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="끝까지 함께 탑승했거나 노쇼를 당한 사람만 신고할 수 있습니다.\n노쇼한 동승자는 노쇼 유형으로만 신고할 수 있어요.\n같은 방 · 같은 대상 중복 신고 불가\n운영자 승인 시 누적 반영"
+                        android:textColor="@color/taxipot_sub_text"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvError"
+                style="@style/TaxiPot.ErrorText"
+                android:layout_marginTop="12dp"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </ScrollView>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="20dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="16dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSubmit"
+            style="@style/TaxiPot.PrimaryButton"
+            android:text="신고 접수" />
+    </FrameLayout>
+</LinearLayout>

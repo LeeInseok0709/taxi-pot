@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AU-03 학생 정보 인증 (캡처본 제출 / 반려 후 재제출) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/taxipot_surface"
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/appBar"
+        layout="@layout/view_taxipot_app_bar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="20dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="24dp">
+
+            <TextView
+                style="@style/TaxiPot.Chip"
+                android:text="2차 인증 · 캡처본 제출" />
+
+            <TextView
+                style="@style/TaxiPot.Title"
+                android:layout_marginTop="16dp"
+                android:text="학생 정보를 인증해주세요" />
+
+            <TextView
+                style="@style/TaxiPot.Desc"
+                android:text="종합정보시스템 학생 기본 정보의 학번 · 학적 · 성별이 보이도록 캡처해주세요." />
+
+            <!-- 캡처 이미지 올리기 (누르면 사진 선택기) -->
+            <FrameLayout
+                android:id="@+id/boxUpload"
+                android:layout_width="match_parent"
+                android:layout_height="220dp"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/bg_taxipot_upload"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
+
+                <LinearLayout
+                    android:id="@+id/uploadHint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_image_add"
+                        app:tint="@color/taxipot_text" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="캡처 이미지 업로드"
+                        android:textColor="@color/taxipot_text"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="학생 기본 정보 캡처본을 선택하세요"
+                        android:textColor="@color/taxipot_sub_text"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/ivCapture"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="선택한 캡처 이미지"
+                    android:padding="8dp"
+                    android:scaleType="fitCenter"
+                    android:visibility="gone" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/tvImageError"
+                style="@style/TaxiPot.ErrorText" />
+
+            <!-- 학번 확인 -->
+            <TextView
+                style="@style/TaxiPot.Label"
+                android:layout_marginTop="20dp"
+                android:text="학번 확인" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilStudentNo"
+                style="@style/TaxiPot.Field"
+                app:helperText="가입할 때 입력한 학번과 같아야 해요.">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etStudentNo"
+                    style="@style/TaxiPot.FieldEdit"
+                    android:hint="학번 확인 입력"
+                    android:imeOptions="actionDone"
+                    android:inputType="text"
+                    android:maxLength="20" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 반려 사유 (반려 후 재제출일 때만) -->
+            <LinearLayout
+                android:id="@+id/boxReject"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/bg_taxipot_box"
+                android:orientation="horizontal"
+                android:padding="14dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginTop="1dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_info_outline"
+                    app:tint="@color/taxipot_text" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="반려 사유"
+                        android:textColor="@color/taxipot_text"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvRejectReason"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textColor="@color/taxipot_sub_text"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 제출 실패·연결 실패 안내 -->
+            <TextView
+                android:id="@+id/tvError"
+                style="@style/TaxiPot.ErrorText"
+                android:layout_marginTop="12dp"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- 제출 버튼 (화면 아래 고정) -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="20dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="16dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSubmit"
+            style="@style/TaxiPot.PrimaryButton"
+            android:text="제출하기" />
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:elevation="8dp"
+            android:indeterminate="true"
+            android:visibility="gone"
+            app:indicatorColor="@color/taxipot_text"
+            app:indicatorSize="24dp"
+            app:trackThickness="3dp" />
+    </FrameLayout>
+</LinearLayout>

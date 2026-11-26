@@ -2,7 +2,10 @@ package com.taxipot.domain.user.repository;
 
 import com.taxipot.domain.user.entity.User;
 import com.taxipot.global.security.AuthUserStatus;
+import com.taxipot.global.code.UserStatus;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -60,4 +63,16 @@ public interface UserRepository extends JpaRepository<User, Long> {
             + "and u.email is not null "
             + "order by u.id asc")
     List<Long> findIdsToPurge(@Param("threshold") LocalDateTime threshold);
+
+    /**
+     * 운영자 회원 목록 (인석 추가). keyword: 이름·닉네임·이메일·학번 부분 일치, status: 상태 필터. 둘 다 null 이면 전체.
+     * <p>전화번호는 암호화 컬럼이라 검색 대상에서 뺀다 (명세도 이름·닉네임·이메일·학번만).
+     * keyword 는 서비스에서 '%...%' 로 감싸서 넘긴다. 입력에 섞인 %·_ 는 서비스가 '!' 로 escape 한다.
+     */
+    @Query("select u from User u "
+            + "where (:status is null or u.status = :status) "
+            + "and (:keyword is null "
+            + "     or u.name like :keyword escape '!' or u.nickname like :keyword escape '!' "
+            + "     or u.email like :keyword escape '!' or u.studentNo like :keyword escape '!')")
+    Page<User> searchForAdmin(@Param("keyword") String keyword, @Param("status") UserStatus status, Pageable pageable);
 }

@@ -4,6 +4,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".TaxiPotApplication"
@@ -75,6 +76,65 @@
             android:name=".feature.auth.login.LoginActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".feature.auth.signup.SignupActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".feature.auth.verification.EmailVerificationActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".feature.auth.verification.CaptureVerificationActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".feature.auth.verification.VerificationStatusActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.wallet.WalletActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.wallet.charge.WalletChargeActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".feature.wallet.withdraw.WithdrawActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".feature.wallet.withdraw.WithdrawResultActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.settlement.SettlementActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.rating.RatingActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".feature.report.ReportActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".feature.mypage.MyPageActivity" android:exported="false" />
+        <activity android:name=".feature.mypage.history.MyPotHistoryActivity" android:exported="false" />
+        <activity android:name=".feature.mypage.claim.MyFareClaimActivity" android:exported="false" />
+        <activity android:name=".feature.mypage.report.MyReportActivity" android:exported="false" />
+        <activity android:name=".feature.notification.NotificationActivity" android:exported="false" />
+        <service
+            android:name=".fcm.TaxiPotFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="taxipot_default" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_taxi" />
     </application>
 
 </manifest>

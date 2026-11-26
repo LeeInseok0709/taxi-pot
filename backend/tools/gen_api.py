@@ -83,7 +83,8 @@ OPS = {
     ('PATCH', '/api/admin/verifications/{verificationId}'): ('verification.AdminVerificationController', 'verification.AdminVerificationService', 'reviewVerification'),
     ('GET', '/api/admin/verifications/{verificationId}/capture'): ('verification.AdminVerificationController', 'verification.AdminVerificationService', 'getCaptureImage'),
     ('GET', '/api/admin/users'): ('user.AdminUserController', 'user.AdminUserService', 'getUsers'),
-    ('GET', '/api/admin/users/{userId}'): ('user.AdminUserController', 'user.AdminUserService', 'getUserDetail'),
+    # 회원 상세는 지갑·인증·신고·이용 기록을 모으므로 Facade (CONVENTIONS 5장 의존 방향) — 인석
+    ('GET', '/api/admin/users/{userId}'): ('user.AdminUserController', 'user.AdminUserDetailFacade', 'getUserDetail'),
     ('GET', '/api/admin/users/{userId}/pots'): ('user.AdminUserController', 'pot.MyPotHistoryService', 'getUserPotsForAdmin'),
     ('PATCH', '/api/admin/users/{userId}/status'): ('user.AdminUserController', 'user.AdminUserService', 'updateUserStatus'),
     ('PATCH', '/api/admin/users/{userId}/wallet'): ('wallet.AdminWalletController', 'wallet.AdminWalletService', 'adjustWallet'),

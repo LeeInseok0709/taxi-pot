@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 공통 카드 한 장 (목록 화면용). 필요한 줄만 코드에서 보이게 함 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    android:background="@drawable/bg_taxipot_box"
+    android:foreground="?attr/selectableItemBackground"
+    android:orientation="vertical"
+    android:padding="18dp">
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/taxipot_text"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvChip"
+        style="@style/TaxiPot.Chip"
+        android:layout_marginTop="10dp" />
+
+    <TextView
+        android:id="@+id/tvDetail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:lineSpacingExtra="2dp"
+        android:textColor="@color/taxipot_sub_text"
+        android:textSize="13sp" />
+
+    <TextView
+        android:id="@+id/tvStrong"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/taxipot_text"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPrimary"
+        style="@style/TaxiPot.PrimaryButton"
+        android:layout_marginTop="14dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnOutline"
+        style="@style/TaxiPot.OutlineButton"
+        android:layout_marginTop="14dp" />
+</LinearLayout>

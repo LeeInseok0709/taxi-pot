@@ -161,7 +161,7 @@ public JoinResponse join(Long userId, Long potId, JoinRequest request) {
 
 ## 13. 알림과 실시간
 
-알림은 `notificationSender.send(...)`를 호출하면 NOTIFICATION 행이 같은 트랜잭션에 저장되고, FCM 푸시는 커밋된 뒤에만 나갑니다. 지금은 FCM 대신 로그만 찍는 `LogPushSender`가 동작하며, FCM을 붙일 때는 `PushSender`를 구현한 빈을 하나 추가하면 자동으로 바뀝니다.
+알림은 `notificationSender.send(...)`를 호출하면 NOTIFICATION 행이 같은 트랜잭션에 저장되고, FCM 푸시는 커밋된 뒤에만 나갑니다. 발송 방식은 `app.push.enabled`로 고릅니다. `false`(기본)면 로그만 찍는 `LogPushSender`, `true`면 Firebase로 실제 발송하는 `FcmPushSender`이며, `PushSenderConfig`가 둘 중 **하나만** 빈으로 만듭니다. `PushSender` 빈을 따로 추가하지 마세요(빈이 2개가 되어 서버가 뜨지 않습니다). 푸시 data(`type`·`potId`·`notificationId`) 규격은 `PushMessage`에 있고, 앱이 화면 이동에 쓰므로 키 이름을 바꾸지 않습니다.
 
 방 화면 갱신은 `potRealtimePublisher.potUpdated(potId)`를 부르면 `/topic/pots/{potId}` 구독자에게 `{type: "POT_UPDATED", potId, payload}`가 갑니다. 인원·상태·도착·입장 요청이 바뀌는 모든 API와 스케줄러에서 호출합니다. 채팅은 REST로 저장한 뒤 `chatMessage(potId, response)`로 방송합니다. 앱이 STOMP로 직접 보내는(SEND) 것은 막아 두었습니다. STOMP 연결은 `Authorization: Bearer` 헤더로 인증하고, 구독은 그 방의 JOINED·BOARDED 참여자이면서 미수금이 없을 때만 허용됩니다.
 
