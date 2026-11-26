@@ -14,3 +14,7 @@ src/main/resources/application-local.yml
 .env
 uploads/
 logs/
+# Firebase 서비스 계정 키 (FCM 푸시용) — 절대 커밋 금지
+secrets/
+*firebase-adminsdk*.json
+firebase-*.json

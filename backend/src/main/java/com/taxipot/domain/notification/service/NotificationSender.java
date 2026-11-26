@@ -1,6 +1,7 @@
 package com.taxipot.domain.notification.service;
 
 import com.taxipot.domain.notification.entity.Notification;
+import com.taxipot.domain.notification.push.PushMessage;
 import com.taxipot.domain.notification.push.PushSender;
 import com.taxipot.domain.notification.repository.NotificationRepository;
 import com.taxipot.domain.user.entity.User;
@@ -34,10 +35,11 @@ public class NotificationSender {
 
     @Transactional
     public void send(Long memberId, Long potId, NotificationType type, String title, String content) {
-        notificationRepository.save(Notification.of(memberId, potId, type, title, content));
+        Notification saved = notificationRepository.save(Notification.of(memberId, potId, type, title, content));
         String token = userRepository.findById(memberId).map(User::getFcmToken).orElse(null);
         if (token != null) {
-            afterCommit(() -> pushSender.send(token, title, content, potId));
+            PushMessage message = PushMessage.notification(saved.getId(), type.name(), potId, title, content);
+            afterCommit(() -> pushSender.send(token, message));
         }
     }
 

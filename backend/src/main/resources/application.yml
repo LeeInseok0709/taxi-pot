@@ -70,6 +70,10 @@ app:
     debug-header-enabled: false
   mail:
     enabled: false
+  push:
+    # true 로 켜면 FCM 실제 발송. 서비스 계정 키(JSON) 경로가 필요하다 (키 파일은 커밋 금지)
+    enabled: ${TAXIPOT_PUSH_ENABLED:false}
+    credentials-path: ${TAXIPOT_FCM_CREDENTIALS:}
   scheduler:
     enabled: false
     # 아래 주기·시간 값은 시연 프로필에서 줄일 수 있다
