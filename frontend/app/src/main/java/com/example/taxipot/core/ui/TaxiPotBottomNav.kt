@@ -5,10 +5,11 @@ import android.content.Intent
 import android.graphics.Typeface
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import com.example.taxipot.R
 import com.example.taxipot.databinding.ViewTaxipotBottomNavBinding
+import com.example.taxipot.feature.mypage.MyPageActivity
+import com.example.taxipot.feature.notification.NotificationActivity
 import com.example.taxipot.feature.pot.main.PotMainActivity
 import com.example.taxipot.feature.wallet.WalletActivity
 
@@ -28,10 +29,7 @@ object TaxiPotBottomNav {
 
         nav.navHome.setOnClickListener { if (current != Tab.HOME) openHome(activity) }
         nav.navWallet.setOnClickListener { if (current != Tab.WALLET) openWallet(activity) }
-        // TODO: MY-01 마이페이지 만들면 연결
-        nav.navMy.setOnClickListener {
-            if (current != Tab.MY) Toast.makeText(activity, "마이페이지 (준비 중)", Toast.LENGTH_SHORT).show()
-        }
+        nav.navMy.setOnClickListener { if (current != Tab.MY) openMyPage(activity) }
     }
 
     /** 다른 화면(홈·목록 등)의 '내 지갑' 버튼에서도 이걸 쓰면 지갑 화면이 여러 개 쌓이지 않는다 */
@@ -39,6 +37,17 @@ object TaxiPotBottomNav {
         activity.startActivity(
             Intent(activity, WalletActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
         )
+    }
+
+    fun openMyPage(activity: Activity) {
+        activity.startActivity(
+            Intent(activity, MyPageActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+        )
+    }
+
+    /** 홈·지갑·마이페이지 상단의 종 아이콘 */
+    fun openNotifications(activity: Activity) {
+        activity.startActivity(Intent(activity, NotificationActivity::class.java))
     }
 
     fun openHome(activity: Activity) {

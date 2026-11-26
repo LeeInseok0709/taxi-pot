@@ -115,6 +115,11 @@
             android:name=".feature.report.ReportActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".feature.mypage.MyPageActivity" android:exported="false" />
+        <activity android:name=".feature.mypage.history.MyPotHistoryActivity" android:exported="false" />
+        <activity android:name=".feature.mypage.claim.MyFareClaimActivity" android:exported="false" />
+        <activity android:name=".feature.mypage.report.MyReportActivity" android:exported="false" />
+        <activity android:name=".feature.notification.NotificationActivity" android:exported="false" />
     </application>
 
 </manifest>

@@ -34,6 +34,10 @@ interface AuthApi {
     @POST("api/auth/login")
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 
+    /** 로그아웃: 서버의 리프레시 토큰 무효화 (204, 토큰 필요) */
+    @POST("api/auth/logout")
+    suspend fun logout(): Response<Unit>
+
     /** 토큰 재발급 - TokenAuthenticator 전용(동기 호출) */
     @Headers("No-Auth: true")
     @POST("api/auth/refresh")

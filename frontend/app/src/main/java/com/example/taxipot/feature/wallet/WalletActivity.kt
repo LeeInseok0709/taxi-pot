@@ -57,8 +57,7 @@ class WalletActivity : AppCompatActivity() {
         TaxiPotBottomNav.setup(this, binding.bottomNav, TaxiPotBottomNav.Tab.WALLET)
         focusDebtPending = intent.getBooleanExtra(EXTRA_FOCUS_DEBT, false)
 
-        // TODO: MY-05 알림 화면 만들면 연결
-        binding.btnBell.setOnClickListener { showToast("알림 (준비 중)") }
+        binding.btnBell.setOnClickListener { TaxiPotBottomNav.openNotifications(this) }
         // WL-02 충전하기 (시연 충전 안내까지, 실제 충전은 운영자 잔액 조정)
         binding.btnCharge.setOnClickListener {
             startActivity(Intent(this, WalletChargeActivity::class.java))

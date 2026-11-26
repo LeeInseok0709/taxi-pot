@@ -113,13 +113,13 @@ class PotMainActivity : ComponentActivity() {
 
         // 8) 버튼들 (아직 화면이 없는 것은 "준비 중" 메시지)
         binding.btnMyLocation.setOnClickListener { onMyLocationClick() }
-        binding.btnBell.setOnClickListener { showToast("알림 (준비 중)") }
+        binding.btnBell.setOnClickListener { TaxiPotBottomNav.openNotifications(this) }
         binding.tvSearch.setOnClickListener { showToast("장소 검색 (준비 중)") }
         binding.btnCreatePot.setOnClickListener {
             startActivity(android.content.Intent(this, com.example.taxipot.feature.pot.create.PotCreateActivity::class.java))
         }
         binding.navWallet.setOnClickListener { TaxiPotBottomNav.openWallet(this) }
-        binding.navMy.setOnClickListener { showToast("마이페이지 (준비 중)") }
+        binding.navMy.setOnClickListener { TaxiPotBottomNav.openMyPage(this) }
 
         // 9) 목록 제목을 누르면 전체 목록(EX-02)으로 이동
         binding.tvNearbyTitle.setOnClickListener {

@@ -88,10 +88,10 @@ class PotListActivity : ComponentActivity() {
         binding.btnMembers.setOnClickListener { showToast("인원 필터는 팀에서 정한 뒤 추가 예정") }
 
         // 6) 그 외 버튼
-        binding.btnBell.setOnClickListener { showToast("알림 (준비 중)") }
+        binding.btnBell.setOnClickListener { TaxiPotBottomNav.openNotifications(this) }
         binding.navHome.setOnClickListener { finish() }   // 홈 화면으로 돌아가기
         binding.navWallet.setOnClickListener { TaxiPotBottomNav.openWallet(this) }
-        binding.navMy.setOnClickListener { showToast("마이페이지 (준비 중)") }
+        binding.navMy.setOnClickListener { TaxiPotBottomNav.openMyPage(this) }
 
         // 7) 목록 불러오기
         observeViewModel()
