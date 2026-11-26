@@ -113,6 +113,22 @@
             android:tint="#2B2B2B" />
     </FrameLayout>
 
+    <!-- 내가 참여 중인 택시팟 (있을 때만, 누르면 대기실) -->
+    <TextView
+        android:id="@+id/tvMyPot"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="20dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:padding="14dp"
+        android:textColor="#2B2B2B"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
     <!-- 목록 제목 -->
     <TextView
         android:id="@+id/tvNearbyTitle"
@@ -125,6 +141,19 @@
         android:textColor="#2B2B2B"
         android:textSize="16sp"
         android:textStyle="bold" />
+
+    <!-- 주변에 방이 없을 때 -->
+    <TextView
+        android:id="@+id/tvEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:gravity="center"
+        android:lineSpacingExtra="4dp"
+        android:text="이 주변에 모집 중인 택시팟이 없어요\n아래 '방 만들기'로 직접 모아 보세요!"
+        android:textColor="#9A9A9A"
+        android:textSize="14sp"
+        android:visibility="gone" />
 
     <!-- 방 카드 목록 -->
     <androidx.recyclerview.widget.RecyclerView

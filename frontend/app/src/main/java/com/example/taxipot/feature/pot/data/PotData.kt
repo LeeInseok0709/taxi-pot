@@ -8,7 +8,7 @@ val PotSummaryResponse.isVacancy: Boolean
 
 /** 출발 시각에서 "21:30"만 꺼내기 */
 val PotSummaryResponse.departureClock: String
-    get() = if (departureTime.length >= 16) departureTime.substring(11, 16) else departureTime
+    get() = clockOf(departureTime)
 
 /** 성별 제한 글자 (제한 없으면 null) */
 val PotSummaryResponse.genderLabel: String?

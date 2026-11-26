@@ -189,6 +189,11 @@ class WaitingRoomActivity : ComponentActivity() {
         binding.btnJoinRequests.visibility = if (isHost) View.VISIBLE else View.GONE
         binding.btnStart.visibility = if (isHost) View.VISIBLE else View.GONE
         binding.btnCancel.text = if (isHost) "방 취소" else "참여 취소"
+        // 출발 10분 전(취소 마감)이 지나면 취소 버튼 잠그기
+        val cancelClosed = (parseTime(pot.cancelDeadline) ?: Long.MAX_VALUE) <= System.currentTimeMillis()
+        if (cancelClosed && waiting) binding.btnCancel.text = "취소 마감 (출발 10분 전)"
+        binding.btnCancel.isEnabled = waiting && !cancelClosed
+        binding.btnCancel.alpha = if (binding.btnCancel.isEnabled) 1f else 0.5f
 
         // 도착 확인 버튼
         binding.btnArrive.text = when {

@@ -357,6 +357,21 @@ object PotRepository {
         return ApiResult.Success(Unit)
     }
 
+    // ===== 홈: 지금 참여 중인 방 =====
+
+    private val userApi by lazy { ApiClient.create(com.example.taxipot.data.remote.api.UserApi::class.java) }
+
+    /** 지금 참여 중인 방 (홈 위쪽 띠) — 없으면 null. 가짜 데이터일 때는 안 보여줌 */
+    suspend fun myActivePot(): com.example.taxipot.data.remote.dto.user.MyPotHistoryResponse? {
+        if (USE_FAKE) return null
+        val result = safeApiCall { userApi.getMyPots(size = 10) }
+        if (result !is ApiResult.Success) return null
+        return result.data.content.firstOrNull {
+            (it.myStatus == "JOINED" || it.myStatus == "BOARDED") &&
+                    it.potStatus in listOf("RECRUITING", "CLOSED", "RUNNING")
+        }
+    }
+
     // ===== 방 수정 =====
 
     /** 방 수정 (방장) — 제목·오픈채팅 링크, 바꿀 것만 (null은 그대로) */
