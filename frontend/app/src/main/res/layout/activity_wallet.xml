@@ -248,11 +248,10 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:background="@drawable/bg_taxipot_box"
+                    android:layout_marginTop="4dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:padding="14dp">
+                    android:padding="2dp">
 
                     <ImageView
                         android:layout_width="18dp"
