@@ -2,6 +2,8 @@ package com.example.taxipot.feature.wallet.withdraw
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import androidx.activity.OnBackPressedCallback
@@ -10,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.widget.ImageViewCompat
 import com.example.taxipot.R
 import com.example.taxipot.data.remote.dto.wallet.WithdrawalResponse
 import com.example.taxipot.databinding.ActivityWithdrawResultBinding
@@ -46,7 +49,9 @@ class WithdrawResultActivity : AppCompatActivity() {
 
         if (success) {
             binding.ivResult.setImageResource(R.drawable.ic_check)
-            binding.ivResult.setBackgroundResource(R.drawable.bg_taxipot_circle_primary)
+            // 완료는 초록 원 + 흰 체크
+            binding.ivResult.setBackgroundResource(R.drawable.bg_taxipot_circle_success)
+            ImageViewCompat.setImageTintList(binding.ivResult, ColorStateList.valueOf(Color.WHITE))
             binding.tvTitle.text = "출금이 완료되었습니다"
 
             binding.boxSuccess.visibility = View.VISIBLE
