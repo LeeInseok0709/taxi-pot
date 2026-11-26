@@ -66,6 +66,8 @@ class WalletViewModel : ViewModel() {
             val debtsJob = async { safeApiCall { api.getDebts() } }
             val wallet = walletJob.await()
             val debts = debtsJob.await()
+            // 홈·참여하기 화면도 같은 잔액을 보도록 공용 창구에 알려 둔다
+            if (wallet is ApiResult.Success) WalletBalance.update(wallet.data.balance)
 
             _uiState.update { state ->
                 state.copy(

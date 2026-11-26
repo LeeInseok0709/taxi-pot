@@ -97,6 +97,13 @@
             android:name=".feature.wallet.charge.WalletChargeActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".feature.wallet.withdraw.WithdrawActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".feature.wallet.withdraw.WithdrawResultActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

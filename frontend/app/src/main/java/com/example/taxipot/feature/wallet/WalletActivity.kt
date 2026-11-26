@@ -25,6 +25,7 @@ import com.example.taxipot.databinding.ActivityWalletBinding
 import com.example.taxipot.databinding.ItemWalletDebtBinding
 import com.example.taxipot.databinding.ItemWalletHistoryBinding
 import com.example.taxipot.feature.wallet.charge.WalletChargeActivity
+import com.example.taxipot.feature.wallet.withdraw.WithdrawActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 
@@ -62,8 +63,10 @@ class WalletActivity : AppCompatActivity() {
         binding.btnCharge.setOnClickListener {
             startActivity(Intent(this, WalletChargeActivity::class.java))
         }
-        // TODO: WD-01 출금하기
-        binding.btnWithdraw.setOnClickListener { showToast("출금하기 (준비 중)") }
+        // WD-01 출금하기
+        binding.btnWithdraw.setOnClickListener {
+            startActivity(Intent(this, WithdrawActivity::class.java))
+        }
 
         binding.tabPoint.setOnClickListener { viewModel.selectTab(WalletTab.POINT) }
         binding.tabCharge.setOnClickListener { viewModel.selectTab(WalletTab.CHARGE) }

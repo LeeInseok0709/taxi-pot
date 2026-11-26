@@ -19,6 +19,7 @@ import com.example.taxipot.feature.pot.data.PlaceRepository
 import com.example.taxipot.feature.pot.data.PotRepository
 import com.example.taxipot.feature.pot.main.PotColors
 import com.example.taxipot.feature.pot.main.roundedBg
+import com.example.taxipot.feature.wallet.WalletBalance
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -193,7 +194,7 @@ class PotCreateActivity : ComponentActivity() {
         val fare = binding.etFare.text.toString().toIntOrNull()
         val hold = fare?.let { PotRepository.holdAmount(it, maxMembers) }
         seatLauncher.launch(
-            SeatPickActivity.newIntent(this, preferredSeat, hold, FakePotData.FAKE_BALANCE)
+            SeatPickActivity.newIntent(this, preferredSeat, hold, WalletBalance.latest ?: 0)
         )
     }
 

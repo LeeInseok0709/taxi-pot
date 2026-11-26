@@ -5,7 +5,10 @@ import com.example.taxipot.data.remote.dto.wallet.DebtPayResponse
 import com.example.taxipot.data.remote.dto.wallet.DebtResponse
 import com.example.taxipot.data.remote.dto.wallet.PointHistoryResponse
 import com.example.taxipot.data.remote.dto.wallet.WalletResponse
+import com.example.taxipot.data.remote.dto.wallet.WithdrawalRequest
+import com.example.taxipot.data.remote.dto.wallet.WithdrawalResponse
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -33,4 +36,8 @@ interface WalletApi {
     /** 미수금 납부 (잔액에서 차감, 잔액이 모자라면 있는 만큼 부분 납부) */
     @POST("api/wallet/debts/{settlementId}/pay")
     suspend fun payDebt(@Path("settlementId") settlementId: Long): Response<DebtPayResponse>
+
+    /** 등록 계좌로 출금 (시연은 더미 송금이라 결과가 바로 옴) */
+    @POST("api/wallet/withdrawals")
+    suspend fun requestWithdrawal(@Body request: WithdrawalRequest): Response<WithdrawalResponse>
 }

@@ -37,6 +37,7 @@ import com.kakao.vectormap.label.LabelStyle
 import com.kakao.vectormap.label.LabelStyles
 import java.security.MessageDigest
 import com.example.taxipot.core.ui.TaxiPotBottomNav
+import com.example.taxipot.feature.wallet.WalletBalance
 
 /**
  * EX-01 홈 화면 (지도 + 방 카드 목록)
@@ -104,7 +105,7 @@ class PotMainActivity : ComponentActivity() {
         applyDesign()
 
         // 6) 잔액 표시 (지금은 가짜 값)
-        binding.tvBalance.text = "%,dP".format(FakePotData.FAKE_BALANCE)
+        binding.tvBalance.text = "%,dP".format(WalletBalance.latest ?: 0)
 
         // 7) 방 카드 목록 설정
         binding.rvPots.layoutManager = LinearLayoutManager(this)
@@ -350,6 +351,10 @@ class PotMainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         binding.mapView.resume()
+        // 잔액은 지갑 API로 (지갑·충전·출금 후 돌아와도 최신 값)
+        lifecycleScope.launch {
+            WalletBalance.refresh()?.let { binding.tvBalance.text = "%,dP".format(it) }
+        }
     }
 
     override fun onPause() {
