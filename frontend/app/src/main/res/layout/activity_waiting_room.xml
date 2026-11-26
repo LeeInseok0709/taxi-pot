@@ -68,10 +68,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
                 android:layout_marginTop="16dp"
-                android:padding="1dp">
+                >
 
                 <com.kakao.vectormap.MapView
                     android:id="@+id/mapView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+                <!-- 지도 모서리를 둥글게 덮기 -->
+                <com.example.taxipot.feature.pot.main.MapCornerMask
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
             </FrameLayout>

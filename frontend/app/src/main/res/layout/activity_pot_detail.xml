@@ -53,12 +53,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="180dp"
                 android:layout_marginTop="4dp"
-                android:padding="1dp">
+                >
 
                 <com.kakao.vectormap.MapView
                     android:id="@+id/mapView"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
+                <!-- 지도 모서리를 둥글게 덮기 -->
+                <com.example.taxipot.feature.pot.main.MapCornerMask
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
             </FrameLayout>
 
             <!-- 상태 칩: 모집 중 · 2 / 4명 -->
