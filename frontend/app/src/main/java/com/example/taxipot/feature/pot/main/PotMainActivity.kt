@@ -351,8 +351,9 @@ class PotMainActivity : ComponentActivity() {
             return
         }
         val state = if (pot.potStatus == "RUNNING") "탑승 중"
-        else "출발 ${com.example.taxipot.feature.pot.data.clockOf(pot.departureTime ?: "")}"
-        binding.tvMyPot.text = "내가 참여 중인 택시팟 · ${pot.departureName} → ${pot.destinationName} · $state  ›"
+        else "출발: ${com.example.taxipot.feature.pot.data.clockOf(pot.departureTime ?: "")}"
+        binding.tvMyPot.text = "내가 참여 중인 택시팟  ›\n${pot.departureName} → ${pot.destinationName}\n$state"
+        binding.tvMyPot.maxLines = 4   // 세 줄 + 장소 이름이 길 때 한 줄 여유
         binding.tvMyPot.background = roundedBg(PotColors.ACCENT, 12f)
         binding.tvMyPot.visibility = android.view.View.VISIBLE
         binding.tvMyPot.setOnClickListener {
