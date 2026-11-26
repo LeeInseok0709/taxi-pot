@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <application
+        android:name=".TaxiPotApplication"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.TaxiPot"
+        android:usesCleartextTraffic="true">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".feature.pot.main.PotMainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.pot.list.PotListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.pot.filter.PotFilterActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.pot.detail.PotDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.pot.create.PotCreateActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.pot.create.PlacePickActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.pot.create.PotCreateConfirmActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.pot.create.SeatPickActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.pot.join.PotJoinActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.pot.join.PotJoinDoneActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.pot.room.WaitingRoomActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.pot.chat.ChatActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.pot.room.JoinRequestActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.pot.ride.RideActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.pot.ride.FareClaimActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.auth.login.LoginActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+    </application>
+
+</manifest>

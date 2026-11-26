@@ -1,0 +1,103 @@
+# 공통 설정. 환경별 값은 application-{local,demo}.yml, 비밀값은 환경변수로.
+spring:
+  application:
+    name: taxipot-server
+  profiles:
+    default: local
+  datasource:
+    # 명세: serverTimezone=Asia/Seoul, characterEncoding=UTF-8, connectionCollation=utf8mb4_0900_ai_ci
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:taxipot}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&connectionCollation=utf8mb4_0900_ai_ci&useSSL=false&allowPublicKeyRetrieval=true
+    username: ${DB_USERNAME:taxipot}
+    password: ${DB_PASSWORD:taxipot}
+  jpa:
+    open-in-view: false
+    hibernate:
+      # 스키마는 db/schema.sql 로만 만든다. validate = Entity 와 DB 가 다르면 서버가 뜨지 않음 (어긋남을 바로 발견)
+      ddl-auto: validate
+      naming:
+        # @Table·@Column 이름을 그대로 사용 (대문자 테이블명 USERS 등이 소문자로 바뀌지 않게)
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: Asia/Seoul
+        default_batch_fetch_size: 100
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: Asia/Seoul
+    # default-property-inclusion 은 설정하지 않는다 (명세: null 도 키를 생략하지 않음)
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 12MB
+  sql:
+    init:
+      mode: never
+  mail:
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+server:
+  port: ${PORT:8080}
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: "택시팟 API 명세서 3.9.0 (공식)"
+        url: /api-spec/taxipot-api.yaml
+      - name: "서버 구현 (자동)"
+        url: /v3/api-docs
+    urls-primary-name: "서버 구현 (자동)"
+    operations-sorter: method
+    persist-authorization: true
+
+app:
+  jwt:
+    secret: ${TAXIPOT_JWT_SECRET}
+    access-token-minutes: 60
+    refresh-token-days: 14
+  crypto:
+    aes-key: ${TAXIPOT_CRYPTO_KEY}
+  upload:
+    dir: ${TAXIPOT_UPLOAD_DIR:./uploads}
+  security:
+    debug-header-enabled: false
+  mail:
+    enabled: false
+  scheduler:
+    enabled: false
+    # 아래 주기·시간 값은 시연 프로필에서 줄일 수 있다
+    one-minute-ms: 60000
+    thirty-seconds-ms: 30000
+    ten-minutes-ms: 600000
+    one-hour-ms: 3600000
+    daily-cron: "0 0 4 * * *"
+  verification:
+    email-code-ttl-minutes: 1
+    resend-interval-seconds: 60
+  pot:
+    min-lead-minutes: 15
+    max-advance-hours: 24
+    arrival-deadline-minutes: 5
+    cancel-deadline-minutes: 10
+    auto-cancel-after-minutes: 30
+    start-reminder-minutes: 3
+    late-warning-minutes: 3
+    fee-amount: 1000
+    no-show-suspend-minutes: 15
+  arrival:
+    radius-meters: 50
+  debt:
+    due-days: 3
+  fare-claim:
+    deadline-hours: 24
+  receipt:
+    retention-days: 90
+  withdrawal:
+    dummy-fail-amount: 0
