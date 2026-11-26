@@ -8,6 +8,7 @@ import com.example.taxipot.core.network.ApiResult
 import com.example.taxipot.core.network.safeApiCall
 import com.example.taxipot.data.remote.api.AuthApi
 import com.example.taxipot.data.remote.dto.auth.LoginRequest
+import com.example.taxipot.fcm.FcmTokenSync
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -65,6 +66,7 @@ class LoginViewModel : ViewModel() {
                 is ApiResult.Success -> {
                     val body = result.data
                     ApiClient.tokenManager.saveTokens(body.accessToken, body.refreshToken)
+                    FcmTokenSync.syncCurrentToken()
                     _uiState.update { it.copy(isLoading = false) }
                     // 학생 인증 전이면 인증 화면, 아니면 홈
                     _events.send(

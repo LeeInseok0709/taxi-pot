@@ -37,6 +37,7 @@ import com.kakao.vectormap.label.LabelStyle
 import com.kakao.vectormap.label.LabelStyles
 import java.security.MessageDigest
 import com.example.taxipot.core.ui.TaxiPotBottomNav
+import com.example.taxipot.fcm.NotificationPermission
 import com.example.taxipot.feature.wallet.WalletBalance
 
 /**
@@ -132,6 +133,8 @@ class PotMainActivity : ComponentActivity() {
         // 11) 택시팟 목록 불러오기 (기준 위치: 백석대학교)
         observeViewModel()
         viewModel.load(PotFilter(), FakePotData.BAEKSEOK_LAT, FakePotData.BAEKSEOK_LNG)
+
+        NotificationPermission.requestIfNeeded(this)
     }
 
     // 불러온 결과가 오면 목록·핀 다시 그리기, 실패하면 메시지

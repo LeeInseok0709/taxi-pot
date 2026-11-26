@@ -5,6 +5,7 @@ import com.example.taxipot.data.remote.dto.common.PageResponse
 import com.example.taxipot.data.remote.dto.report.ReportResponse
 import com.example.taxipot.data.remote.dto.user.AccountResponse
 import com.example.taxipot.data.remote.dto.user.AccountUpdateRequest
+import com.example.taxipot.data.remote.dto.user.FcmTokenRequest
 import com.example.taxipot.data.remote.dto.user.MemberWithdrawRequest
 import com.example.taxipot.data.remote.dto.user.MyPotHistoryResponse
 import com.example.taxipot.data.remote.dto.user.MyProfileResponse
@@ -32,6 +33,10 @@ interface UserApi {
     /** 비밀번호 변경: 다른 기기는 로그아웃되고 이 기기용 새 토큰이 옴 */
     @PATCH("api/users/me/password")
     suspend fun changePassword(@Body request: PasswordChangeRequest): Response<TokenResponse>
+
+    /** 이 기기의 FCM 푸시 토큰 등록·갱신 (204) */
+    @PUT("api/users/me/fcm-token")
+    suspend fun updateFcmToken(@Body request: FcmTokenRequest): Response<Unit>
 
     /** 내 출금 계좌 (계좌번호는 가려져서 옴, 없으면 404) */
     @GET("api/users/me/account")

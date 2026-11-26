@@ -11,6 +11,7 @@ import com.example.taxipot.data.remote.api.CommonApi
 import com.example.taxipot.data.remote.dto.auth.SignupRequest
 import com.example.taxipot.data.remote.dto.common.BankResponse
 import com.example.taxipot.data.remote.dto.common.UniversityResponse
+import com.example.taxipot.fcm.FcmTokenSync
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -222,6 +223,7 @@ class SignupViewModel : ViewModel() {
                 is ApiResult.Success -> {
                     // 이메일 인증 API는 로그인 상태로 호출하므로 토큰을 바로 저장
                     ApiClient.tokenManager.saveTokens(result.data.accessToken, result.data.refreshToken)
+                    FcmTokenSync.syncCurrentToken()
                     _uiState.update { it.copy(isLoading = false) }
                     _events.send(SignupEvent.Done(result.data.user.email))
                 }

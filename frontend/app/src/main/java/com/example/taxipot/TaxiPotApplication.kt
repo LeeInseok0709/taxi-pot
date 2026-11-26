@@ -8,6 +8,8 @@ import android.widget.Toast
 import com.example.taxipot.core.event.AppEvent
 import com.example.taxipot.core.event.AppEventBus
 import com.example.taxipot.core.network.ApiClient
+import com.example.taxipot.fcm.FcmTokenSync
+import com.example.taxipot.fcm.PushNotifier
 import com.example.taxipot.feature.auth.login.LoginActivity
 import com.example.taxipot.feature.wallet.WalletActivity
 import kotlinx.coroutines.CoroutineScope
@@ -28,6 +30,10 @@ class TaxiPotApplication : Application() {
         super.onCreate()
         // 앱 시작 시 저장된 토큰을 불러오고 Retrofit을 준비한다
         ApiClient.init(this)
+
+        // 푸시 알림 채널 만들고, 로그인 상태면 이 기기 FCM 토큰을 서버에 맞춰 둔다
+        PushNotifier.createChannel(this)
+        FcmTokenSync.syncCurrentToken()
 
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
             override fun onActivityResumed(activity: Activity) {
