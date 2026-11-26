@@ -27,10 +27,44 @@
             android:paddingEnd="20dp"
             android:paddingBottom="24dp">
 
-            <!-- 닉네임 + 중복확인 -->
+            <!-- 이메일 (바꿀 수 없음) -->
             <TextView
                 style="@style/TaxiPot.Label"
                 android:layout_marginTop="8dp"
+                android:text="학교 이메일" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilEmail"
+                style="@style/TaxiPot.Field"
+                app:endIconDrawable="@drawable/ic_lock_outline"
+                app:endIconMode="custom">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etEmail"
+                    style="@style/TaxiPot.FieldEdit.Select"
+                    android:textColor="@color/taxipot_sub_text" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 이름 (바꿀 수 없음) -->
+            <TextView
+                style="@style/TaxiPot.Label"
+                android:text="이름" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilName"
+                style="@style/TaxiPot.Field"
+                app:endIconDrawable="@drawable/ic_lock_outline"
+                app:endIconMode="custom">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etName"
+                    style="@style/TaxiPot.FieldEdit.Select"
+                    android:textColor="@color/taxipot_sub_text" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 닉네임 + 중복확인 -->
+            <TextView
+                style="@style/TaxiPot.Label"
                 android:text="닉네임" />
 
             <FrameLayout
