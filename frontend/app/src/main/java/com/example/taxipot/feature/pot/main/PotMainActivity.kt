@@ -47,6 +47,17 @@ class PotMainActivity : ComponentActivity() {
 
     private lateinit var binding: ActivityPotMainBinding
     private var kakaoMap: KakaoMap? = null                      // 지도가 준비되면 여기 들어옴
+
+    // 장소 검색(PlacePickActivity) 결과 → 그곳으로 지도 이동 + 그 근처 방 목록
+    private val searchLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            com.example.taxipot.feature.pot.create.PlacePickActivity.placeFrom(result.data)?.let {
+                searchAt(it.name, it.lat, it.lng)
+            }
+        }
+    }
     private var pots: List<PotSummaryResponse> = emptyList()   // 지금 화면에 보여주는 방 목록
 
     // 택시팟 목록 불러오기 담당 (목록 화면과 같이 사용)
@@ -115,7 +126,9 @@ class PotMainActivity : ComponentActivity() {
         // 8) 버튼들 (아직 화면이 없는 것은 "준비 중" 메시지)
         binding.btnMyLocation.setOnClickListener { onMyLocationClick() }
         binding.btnBell.setOnClickListener { TaxiPotBottomNav.openNotifications(this) }
-        binding.tvSearch.setOnClickListener { showToast("장소 검색 (준비 중)") }
+        binding.tvSearch.setOnClickListener {
+            searchLauncher.launch(com.example.taxipot.feature.pot.create.PlacePickActivity.newIntent(this, "장소 검색", null))
+        }
         binding.btnCreatePot.setOnClickListener {
             startActivity(android.content.Intent(this, com.example.taxipot.feature.pot.create.PotCreateActivity::class.java))
         }
@@ -321,6 +334,13 @@ class PotMainActivity : ComponentActivity() {
         }
     }
 
+    // 검색한 장소로 지도 이동 + 그 근처(반경 1km) 방 목록 불러오기
+    private fun searchAt(name: String, lat: Double, lng: Double) {
+        binding.tvSearch.text = name
+        moveCamera(lat, lng)
+        viewModel.load(PotFilter(), lat, lng)
+    }
+
     // 현재 위치를 찾아서 지도를 그곳으로 옮기기
     private fun moveToMyLocation() {
         if (!LocationHelper.isLocationOn(this)) {
@@ -337,13 +357,9 @@ class PotMainActivity : ComponentActivity() {
 
             moveCamera(location.latitude, location.longitude)
 
-            // 시험용: 백석대학교까지 거리 (나중에 집결 50m 확인에 사용)
-            val meters = LocationHelper.distanceMeters(
-                location.latitude, location.longitude,
-                com.example.taxipot.feature.pot.data.FakePotData.BAEKSEOK_LAT,
-                com.example.taxipot.feature.pot.data.FakePotData.BAEKSEOK_LNG
-            )
-            showToast("백석대학교까지 약 %,dm".format(meters.toInt()))
+            // 내 위치 근처 방 목록 다시 불러오기
+            binding.tvSearch.text = "내 위치 주변"
+            viewModel.load(PotFilter(), location.latitude, location.longitude)
         }
     }
 
