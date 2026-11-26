@@ -104,6 +104,17 @@
         <activity
             android:name=".feature.wallet.withdraw.WithdrawResultActivity"
             android:exported="false" />
+        <activity
+            android:name=".feature.settlement.SettlementActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.rating.RatingActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".feature.report.ReportActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>
