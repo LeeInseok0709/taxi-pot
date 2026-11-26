@@ -93,6 +93,10 @@
         <activity
             android:name=".feature.wallet.WalletActivity"
             android:exported="false" />
+        <activity
+            android:name=".feature.wallet.charge.WalletChargeActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>

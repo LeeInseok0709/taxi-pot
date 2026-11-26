@@ -24,6 +24,7 @@ import com.example.taxipot.data.remote.dto.wallet.DebtResponse
 import com.example.taxipot.databinding.ActivityWalletBinding
 import com.example.taxipot.databinding.ItemWalletDebtBinding
 import com.example.taxipot.databinding.ItemWalletHistoryBinding
+import com.example.taxipot.feature.wallet.charge.WalletChargeActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
 
@@ -57,8 +58,10 @@ class WalletActivity : AppCompatActivity() {
 
         // TODO: MY-05 알림 화면 만들면 연결
         binding.btnBell.setOnClickListener { showToast("알림 (준비 중)") }
-        // TODO: WL-02 충전하기 (시연 충전 방식 팀 결정 후)
-        binding.btnCharge.setOnClickListener { showToast("충전하기 (준비 중)") }
+        // WL-02 충전하기 (시연 충전 안내까지, 실제 충전은 운영자 잔액 조정)
+        binding.btnCharge.setOnClickListener {
+            startActivity(Intent(this, WalletChargeActivity::class.java))
+        }
         // TODO: WD-01 출금하기
         binding.btnWithdraw.setOnClickListener { showToast("출금하기 (준비 중)") }
 
