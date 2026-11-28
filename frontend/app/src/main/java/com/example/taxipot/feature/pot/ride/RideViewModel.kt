@@ -6,6 +6,7 @@ import com.example.taxipot.core.network.ApiResult
 import com.example.taxipot.data.remote.dto.pot.PotDetailResponse
 import com.example.taxipot.feature.pot.chat.PotRealtime
 import com.example.taxipot.feature.pot.data.MyInfo
+import com.example.taxipot.feature.pot.data.PlaceRepository
 import com.example.taxipot.feature.pot.data.PotRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +20,10 @@ data class RideUiState(
     /** 이 방에서 "나"의 회원 번호 */
     val myUserId: Long? = null,
     /** 한 번 보여주고 지울 문장 */
-    val message: String? = null
+    val message: String? = null,
+    /** 카카오 T에 붙여넣을 주소 (못 찾으면 null → 장소명 사용) */
+    val departureAddress: String? = null,
+    val destinationAddress: String? = null
 )
 
 /** RD-04 탑승 중 */
@@ -37,13 +41,27 @@ class RideViewModel : ViewModel() {
         this.potId = potId
     }
 
+    // onResume마다 refresh가 돌아서, 주소는 한 번만 요청
+    private var addressRequested = false
+
+    private fun loadAddresses(pot: PotDetailResponse) {
+        if (addressRequested) return
+        addressRequested = true
+        viewModelScope.launch {
+            val dep = PlaceRepository.addressAt(pot.departureLat, pot.departureLng)
+            val dest = PlaceRepository.addressAt(pot.destinationLat, pot.destinationLng)
+            _uiState.update { it.copy(departureAddress = dep, destinationAddress = dest) }
+        }
+    }
+
     /** 방 정보 다시 불러오기 */
     fun refresh() {
         if (potId < 0) return
         viewModelScope.launch {
             when (val result = PotRepository.getPot(potId)) {
-                is ApiResult.Success -> _uiState.update {
-                    it.copy(pot = result.data, myUserId = MyInfo.myUserId(result.data))
+                is ApiResult.Success -> {
+                    _uiState.update { it.copy(pot = result.data, myUserId = MyInfo.myUserId(result.data)) }
+                    loadAddresses(result.data)
                 }
                 is ApiResult.Failure, is ApiResult.NetworkError -> _uiState.update {
                     it.copy(message = PotRepository.errorMessage(result))
