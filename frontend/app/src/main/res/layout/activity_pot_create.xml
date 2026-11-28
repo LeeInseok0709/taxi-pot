@@ -246,27 +246,26 @@
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
-            <EditText
-                android:id="@+id/etFare"
+            <!-- 예상 총 요금: 카카오 예상 요금 자동 입력, 직접 수정 불가 -->
+            <TextView
+                android:id="@+id/tvFare"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginTop="8dp"
-                android:hint="예상 총 요금 (원)"
-                android:inputType="number"
+                android:gravity="center_vertical"
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
                 android:singleLine="true"
-                android:textColor="@color/taxipot_text"
-                android:textColorHint="@color/taxipot_sub_text"
-                android:textSize="14sp"
-                android:maxLength="6" />
+                android:text="출발지·목적지를 고르면 자동 계산돼요"
+                android:textColor="@color/taxipot_sub_text"
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/tvFareHint"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:text="원 단위 · 50만 원 이하"
+                android:text="카카오 예상 택시 요금으로 자동 계산돼요"
                 android:textColor="@color/taxipot_sub_text"
                 android:textSize="11sp" />
 
@@ -290,30 +289,6 @@
                 android:text="조수석  ›"
                 android:textColor="@color/taxipot_sub_text"
                 android:textSize="14sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
-                android:text="오픈채팅 링크 (선택)"
-                android:textColor="@color/taxipot_text"
-                android:textSize="13sp"
-                android:textStyle="bold" />
-
-            <EditText
-                android:id="@+id/etOpenChat"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="8dp"
-                android:hint="링크 입력"
-                android:inputType="textUri"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:singleLine="true"
-                android:textColor="@color/taxipot_text"
-                android:textColorHint="@color/taxipot_sub_text"
-                android:textSize="14sp"
-                android:maxLength="500" />
         </LinearLayout>
     </ScrollView>
 
