@@ -141,5 +141,8 @@
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_taxi" />
     </application>
+    <queries>
+        <package android:name="com.kakao.taxi" />
+    </queries>
 
 </manifest>

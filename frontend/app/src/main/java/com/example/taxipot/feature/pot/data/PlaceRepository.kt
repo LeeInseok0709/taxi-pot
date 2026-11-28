@@ -63,6 +63,16 @@ object PlaceRepository {
         return Place(name, road ?: jibun ?: "", lat, lng)
     }
 
+    /** 좌표 → 카카오 T 검색용 주소 (도로명 → 지번), 못 찾으면 null */
+    suspend fun addressAt(lat: Double, lng: Double): String? {
+        if (!hasKey) return null
+        val result = safeApiCall { KakaoApiClient.local.coordToAddress(x = lng, y = lat) }
+        if (result !is ApiResult.Success) return null
+        val doc = result.data.documents.firstOrNull() ?: return null
+        return doc.roadAddress?.addressName?.takeIf { it.isNotBlank() }
+            ?: doc.address?.addressName?.takeIf { it.isNotBlank() }
+    }
+
     /** 출발지 → 목적지 예상 택시 요금 (카카오모빌리티 길찾기) */
     suspend fun estimateFare(from: Place, to: Place): ApiResult<FareEstimate> {
         if (!hasKey) return ApiResult.Failure(0, "NO_KEY", "카카오 REST 키가 없어요.", null)
