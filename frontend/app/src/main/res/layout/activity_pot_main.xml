@@ -6,37 +6,55 @@
     android:background="@color/taxipot_surface"
     android:orientation="vertical">
 
-    <!-- 상단 바: 택시 아이콘 + 택시팟 + 알림 -->
+    <!-- 상단 바: 택시 아이콘 + 택시팟 + 알림 (지갑·마이페이지 상단과 같은 구조) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingStart="20dp"
-        android:paddingEnd="20dp">
+        android:paddingEnd="8dp">
 
         <ImageView
-            android:layout_width="22dp"
-            android:layout_height="22dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:src="@drawable/ic_taxi"
             android:tint="@color/taxipot_text" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="10dp"
             android:layout_weight="1"
             android:text="택시팟"
             android:textColor="@color/taxipot_text"
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <ImageView
-            android:id="@+id/btnBell"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_bell"
-            android:tint="@color/taxipot_text" />
+        <!-- 알림 종 + 안 읽은 알림 점 -->
+        <FrameLayout
+            android:layout_width="48dp"
+            android:layout_height="48dp">
+
+            <ImageButton
+                android:id="@+id/btnBell"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="알림"
+                android:src="@drawable/ic_bell"
+                android:tint="@color/taxipot_text" />
+
+            <View
+                android:id="@+id/viewBellDot"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="11dp"
+                android:background="@drawable/bg_taxipot_dot"
+                android:visibility="gone" />
+        </FrameLayout>
     </LinearLayout>
 
     <!-- 장소 검색 제목 + 잔액 -->

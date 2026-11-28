@@ -23,6 +23,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.taxipot.BuildConfig
+import com.example.taxipot.core.ui.NotificationBadge
 import com.example.taxipot.databinding.ActivityPotMainBinding
 import com.example.taxipot.feature.pot.data.FakePotData
 import com.example.taxipot.data.remote.dto.pot.PotSummaryResponse
@@ -399,6 +400,7 @@ class PotMainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         binding.mapView.resume()
+        NotificationBadge.refresh(this, binding.viewBellDot)
         // 잔액은 지갑 API로 (지갑·충전·출금 후 돌아와도 최신 값)
         lifecycleScope.launch {
             WalletBalance.refresh()?.let { binding.tvBalance.text = "%,dP".format(it) }

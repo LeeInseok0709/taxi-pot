@@ -16,7 +16,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.example.taxipot.databinding.ActivityProfileEditBinding
 import kotlinx.coroutines.launch
 
-/** AC-01 내 정보 수정: 닉네임·휴대폰·마케팅 동의 / 비밀번호 변경 / 출금 계좌 관리 */
+/** AC-01 내 정보 수정: 이메일·이름·학교·성별·학번(보기만) / 닉네임·휴대폰·마케팅 동의 / 비밀번호 변경 / 출금 계좌 관리 */
 class ProfileEditActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityProfileEditBinding
@@ -85,6 +85,18 @@ class ProfileEditActivity : AppCompatActivity() {
         // 처음 한 번만 입력칸 채우기 (고치던 내용이 덮이지 않게)
         if (profile != null && !filled) {
             filled = true
+            // 이메일·이름은 보여주기만 (서버에서 바꿀 수 없는 정보)
+            binding.etEmail.setText(profile.email)
+            binding.etName.setText(profile.name)
+            binding.etUniversity.setText(profile.university.orEmpty())
+            binding.etGender.setText(
+                when (profile.gender) {
+                    "M" -> "남자"
+                    "F" -> "여자"
+                    else -> ""
+                }
+            )
+            binding.etStudentNo.setText(profile.studentNo.orEmpty())
             binding.etNickname.setText(profile.nickname)
             binding.etPhone.setText(AccountFormat.phone(profile.phone))
             binding.cbMarketing.isChecked = profile.agreeMarketing == true
