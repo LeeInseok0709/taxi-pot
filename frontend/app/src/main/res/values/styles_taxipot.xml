@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 택시팟 공통 스타일: Figma AU-01 입력 화면 기준 (라벨 위 + 입력 상자 52dp) -->
+<resources>
+
+    <!-- 아래 TaxiPot.* 스타일들의 기본 (점 이름 규칙상 필요) -->
+    <style name="TaxiPot" />
+
+    <!-- 입력칸 위 라벨 -->
+    <style name="TaxiPot.Label">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">16dp</item>
+        <item name="android:textColor">@color/taxipot_text</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- 입력 상자 (TextInputLayout) -->
+    <style name="TaxiPot.Field" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">7dp</item>
+        <item name="boxBackgroundColor">@color/taxipot_surface</item>
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+        <item name="boxStrokeColor">@color/taxipot_field_stroke</item>
+        <item name="boxStrokeErrorColor">@color/taxipot_error</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">1.5dp</item>
+        <item name="errorTextColor">@color/taxipot_error</item>
+        <item name="helperTextTextColor">@color/taxipot_sub_text</item>
+        <item name="endIconTint">@color/taxipot_sub_text</item>
+        <item name="hintEnabled">false</item>
+    </style>
+
+    <!-- 입력 상자 안의 글자 칸 (TextInputEditText) -->
+    <style name="TaxiPot.FieldEdit">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">52dp</item>
+        <item name="android:paddingStart">14dp</item>
+        <item name="android:paddingEnd">14dp</item>
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">@color/taxipot_text</item>
+        <item name="android:textColorHint">@color/taxipot_sub_text</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- 목록에서 고르는 칸 (직접 입력 불가, 누르면 선택창) -->
+    <style name="TaxiPot.FieldEdit.Select">
+        <item name="android:focusable">false</item>
+        <item name="android:focusableInTouchMode">false</item>
+        <item name="android:cursorVisible">false</item>
+        <item name="android:clickable">true</item>
+        <item name="android:inputType">none</item>
+    </style>
+
+    <!-- 성별 같은 선택 버튼 -->
+    <style name="TaxiPot.Option">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:background">@drawable/bg_taxipot_option</item>
+        <item name="android:textColor">@color/taxipot_text</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- 입력칸이 아닌 곳의 에러 문구 -->
+    <style name="TaxiPot.ErrorText">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:paddingStart">4dp</item>
+        <item name="android:textColor">@color/taxipot_error</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:visibility">gone</item>
+    </style>
+
+    <!-- 화면 제목 (23sp) -->
+    <style name="TaxiPot.Title">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/taxipot_text</item>
+        <item name="android:textSize">23sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- 제목 아래 설명 (14sp) -->
+    <style name="TaxiPot.Desc">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">8dp</item>
+        <item name="android:textColor">@color/taxipot_sub_text</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- 단계 표시 칩 (예: 1차 인증 · 이메일 코드) -->
+    <style name="TaxiPot.Chip">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/bg_taxipot_chip</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:paddingEnd">10dp</item>
+        <item name="android:paddingTop">4dp</item>
+        <item name="android:paddingBottom">4dp</item>
+        <item name="android:textColor">@color/taxipot_text</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- 주요 버튼 (베이지, 52dp) -->
+    <style name="TaxiPot.PrimaryButton" parent="Widget.Material3.Button">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">52dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:textColor">@color/taxipot_text</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="backgroundTint">@color/taxipot_primary</item>
+        <item name="cornerRadius">12dp</item>
+    </style>
+
+    <!-- 테두리 버튼 (재발송, 다시 제출 등) -->
+    <style name="TaxiPot.OutlineButton" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:textColor">@color/taxipot_text</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="strokeColor">@color/taxipot_line</item>
+        <item name="cornerRadius">12dp</item>
+    </style>
+</resources>

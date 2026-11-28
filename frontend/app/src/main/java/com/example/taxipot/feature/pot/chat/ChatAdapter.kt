@@ -27,12 +27,23 @@ class ChatAdapter : ListAdapter<ChatMessageResponse, ChatAdapter.ViewHolder>(Dif
     inner class ViewHolder(private val binding: ItemChatMessageBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(m: ChatMessageResponse) {
+        fun bind(m: ChatMessageResponse, prev: ChatMessageResponse?) {
             val context = binding.root.context
             val mine = m.senderId == myUserId
             // 퀵블록은 앞에 [퀵] 표시
             val text = if (m.msgType == "QUICK") "[퀵] ${m.content}" else m.content
-            val time = clockOf(m.sentAt)
+            val time = if (m.sentAt.length >= 16) m.sentAt.substring(11, 16) else m.sentAt
+
+            // 날짜가 바뀌는 첫 메시지 위에 "11월 26일"
+            val day = m.sentAt.take(10)
+            val newDay = prev == null || prev.sentAt.take(10) != day
+            binding.tvDate.visibility = if (newDay) View.VISIBLE else View.GONE
+            if (newDay && day.length == 10) {
+                binding.tvDate.text = "${day.substring(5, 7).toInt()}월 ${day.substring(8, 10).toInt()}일"
+                binding.tvDate.background = context.roundedBg(PotColors.CARD, 10f)
+            }
+            // 같은 사람이 연달아 보내면 닉네임은 처음 한 번만
+            val sameSender = !newDay && prev?.senderId == m.senderId
 
             if (mine) {
                 binding.leftBox.visibility = View.GONE
@@ -44,6 +55,7 @@ class ChatAdapter : ListAdapter<ChatMessageResponse, ChatAdapter.ViewHolder>(Dif
                 binding.rightBox.visibility = View.GONE
                 binding.leftBox.visibility = View.VISIBLE
                 binding.tvNick.text = m.senderNickname
+                binding.tvNick.visibility = if (sameSender) View.GONE else View.VISIBLE
                 binding.tvLeftBubble.text = text
                 binding.tvLeftTime.text = time
                 binding.tvLeftBubble.background = context.roundedBg(PotColors.WHITE, 14f, PotColors.LINE)
@@ -54,7 +66,7 @@ class ChatAdapter : ListAdapter<ChatMessageResponse, ChatAdapter.ViewHolder>(Dif
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
         ViewHolder(ItemChatMessageBinding.inflate(LayoutInflater.from(parent.context), parent, false))
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(getItem(position))
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) = holder.bind(getItem(position), if (position > 0) getItem(position - 1) else null)
 
     object Diff : DiffUtil.ItemCallback<ChatMessageResponse>() {
         override fun areItemsTheSame(a: ChatMessageResponse, b: ChatMessageResponse) = a.id == b.id

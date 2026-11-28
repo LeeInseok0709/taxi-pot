@@ -10,7 +10,10 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import com.example.taxipot.core.network.ApiClient
 import com.example.taxipot.core.network.ApiResult
+import com.example.taxipot.core.network.safeApiCall
+import com.example.taxipot.data.remote.api.UserApi
 import com.example.taxipot.data.remote.dto.pot.PotCreateRequest
 import com.example.taxipot.databinding.ActivityPotCreateBinding
 import com.example.taxipot.feature.pot.data.FakePotData
@@ -19,10 +22,12 @@ import com.example.taxipot.feature.pot.data.PlaceRepository
 import com.example.taxipot.feature.pot.data.PotRepository
 import com.example.taxipot.feature.pot.main.PotColors
 import com.example.taxipot.feature.pot.main.roundedBg
+import com.example.taxipot.feature.wallet.WalletBalance
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 /**
@@ -41,6 +46,9 @@ class PotCreateActivity : ComponentActivity() {
     private var maxMembers = 3                    // 모집 인원 (3 또는 4, 기본 3 = 권장)
     private var genderOption = "ALL"              // ALL / FEMALE / MALE
     private var preferredSeat = "FRONT"           // 내 희망 좌석
+    private var expectedFare: Int? = null         // 예상 총 요금 (카카오 자동 계산, 직접 수정 불가)
+    private var myGender: String? = null          // 내 성별 M / F (모르면 null → 성별 옵션 제한 안 함)
+    private var fareJob: Job? = null              // 진행 중인 요금 계산 (장소를 다시 고르면 이전 계산 취소)
 
     // 좌석 선택지 (화면 글자 ↔ 명세서 값)
     private val seatLabels = arrayOf("조수석", "뒷좌석 왼쪽", "뒷좌석 가운데", "뒷좌석 오른쪽", "상관없음")
@@ -106,7 +114,7 @@ class PotCreateActivity : ComponentActivity() {
         binding.root.setBackgroundColor(PotColors.BACKGROUND)
         listOf(
             binding.etTitle, binding.tvDeparture, binding.tvDestination, binding.tvTime,
-            binding.tvInfo, binding.etFare, binding.tvSeat, binding.etOpenChat
+            binding.tvInfo, binding.tvFare, binding.tvSeat
         ).forEach { it.background = roundedBg(PotColors.CARD, 10f, PotColors.LINE) }
         binding.btnNext.background = roundedBg(PotColors.ACCENT, 12f)
 
@@ -124,13 +132,28 @@ class PotCreateActivity : ComponentActivity() {
         binding.optMembers3.setOnClickListener { maxMembers = 3; render() }
         binding.optMembers4.setOnClickListener { maxMembers = 4; render() }
         binding.optGenderAll.setOnClickListener { genderOption = "ALL"; render() }
-        binding.optGenderFemale.setOnClickListener { genderOption = "FEMALE"; render() }
-        binding.optGenderMale.setOnClickListener { genderOption = "MALE"; render() }
+        // 내 성별과 반대인 전용 옵션은 비활성화 (render 에서 처리, 여기선 한 번 더 막기)
+        binding.optGenderFemale.setOnClickListener {
+            if (myGender != "M") { genderOption = "FEMALE"; render() }
+        }
+        binding.optGenderMale.setOnClickListener {
+            if (myGender != "F") { genderOption = "MALE"; render() }
+        }
+
+        // 예상 총 요금: 직접 입력 불가. 계산에 실패했으면 눌러서 다시 계산
+        binding.tvFare.setOnClickListener {
+            when {
+                departure == null || destination == null ->
+                    showToast("출발지와 목적지를 고르면 요금이 자동으로 계산돼요")
+                expectedFare == null && fareJob?.isActive != true -> estimateFareIfReady()
+            }
+        }
 
         binding.btnNext.setOnClickListener { onNext() }
 
-        // 5) 처음 화면 그리기
+        // 5) 처음 화면 그리기 + 내 성별 불러오기 (성별 옵션 제한용)
         render()
+        loadMyGender()
     }
 
     // 고른 값에 맞춰 글자·선택 표시 다시 그리기
@@ -139,6 +162,14 @@ class PotCreateActivity : ComponentActivity() {
         showValue(binding.tvDestination, destination?.name, "목적지 선택 (지도 핀)  ›")
         showValue(binding.tvTime, departureTime?.let { timeText(it) }, "출발 시각 선택  ›")
         showValue(binding.tvSeat, seatLabels[seatCodes.indexOf(preferredSeat)], "희망 좌석 선택  ›")
+        showValue(binding.tvFare, expectedFare?.let { "%,d원".format(it) }, "출발지·목적지를 고르면 자동 계산돼요")
+
+        // 여자 회원은 남성전용, 남자 회원은 여성전용을 고를 수 없음
+        val femaleLocked = myGender == "M"
+        val maleLocked = myGender == "F"
+        if ((genderOption == "FEMALE" && femaleLocked) || (genderOption == "MALE" && maleLocked)) {
+            genderOption = "ALL"
+        }
 
         selectOption(listOf(binding.optMembers3, binding.optMembers4),
             if (maxMembers == 3) binding.optMembers3 else binding.optMembers4)
@@ -148,12 +179,36 @@ class PotCreateActivity : ComponentActivity() {
                 "MALE" -> binding.optGenderMale
                 else -> binding.optGenderAll
             })
+        setLocked(binding.optGenderFemale, femaleLocked)
+        setLocked(binding.optGenderMale, maleLocked)
+    }
+
+    // 고를 수 없는 옵션은 흐리게 + 누를 수 없게
+    private fun setLocked(view: TextView, locked: Boolean) {
+        view.isEnabled = !locked
+        view.alpha = if (locked) 0.35f else 1f
+    }
+
+    // 내 정보(GET /api/users/me)에서 성별 가져오기. 실패하면 제한 없이 두고 서버 검증(GENDER_RESTRICTED)에 맡김
+    private fun loadMyGender() {
+        if (PotRepository.USE_FAKE) return
+        lifecycleScope.launch {
+            val result = safeApiCall { ApiClient.create(UserApi::class.java).getMyProfile() }
+            if (result is ApiResult.Success) {
+                myGender = when (result.data.gender) {
+                    "M", "MALE" -> "M"
+                    "F", "FEMALE" -> "F"
+                    else -> null
+                }
+                render()
+            }
+        }
     }
 
     // 선택칸 글자: 값이 있으면 진한 글자, 없으면 회색 안내 글자
     private fun showValue(view: TextView, value: String?, placeholder: String) {
         view.text = value ?: placeholder
-        view.setTextColor(if (value != null) PotColors.TEXT else 0xFF9A9A9A.toInt())
+        view.setTextColor(if (value != null) PotColors.TEXT else PotColors.SUB_TEXT)
     }
 
     // 버튼 묶음 중 고른 것만 베이지로
@@ -190,31 +245,34 @@ class PotCreateActivity : ComponentActivity() {
 
     // 희망 좌석 고르기 → 좌석 선택 화면 (요금을 넣었으면 예치액도 보여줌)
     private fun pickSeat() {
-        val fare = binding.etFare.text.toString().toIntOrNull()
-        val hold = fare?.let { PotRepository.holdAmount(it, maxMembers) }
+        val hold = expectedFare?.let { PotRepository.holdAmount(it, maxMembers) }
         seatLauncher.launch(
-            SeatPickActivity.newIntent(this, preferredSeat, hold, FakePotData.FAKE_BALANCE)
+            SeatPickActivity.newIntent(this, preferredSeat, hold, WalletBalance.latest ?: 0)
         )
     }
 
-    // 출발지·목적지를 둘 다 골랐으면 카카오 예상 택시 요금을 자동으로 넣기 (직접 고칠 수 있음)
+    // 출발지·목적지를 둘 다 골랐으면 카카오 예상 택시 요금을 자동으로 넣기 (직접 수정 불가)
     private fun estimateFareIfReady() {
         val dep = departure ?: return
         val dest = destination ?: return
 
+        // 장소가 바뀌었으니 이전 요금은 버리고 다시 계산
+        expectedFare = null
+        render()
         binding.tvFareHint.text = "예상 요금 계산 중..."
-        lifecycleScope.launch {
+        fareJob?.cancel()
+        fareJob = lifecycleScope.launch {
             when (val result = PlaceRepository.estimateFare(dep, dest)) {
                 is ApiResult.Success -> {
                     val estimate = result.data
-                    binding.etFare.setText(estimate.fare.toString())
+                    expectedFare = estimate.fare
+                    render()
                     val minutes = (estimate.durationSeconds + 59) / 60
                     val km = estimate.distanceMeters / 1000.0
-                    binding.tvFareHint.text =
-                        "카카오 예상 요금 · 약 ${minutes}분 · %.1fkm (직접 고칠 수 있어요)".format(km)
+                    binding.tvFareHint.text = "카카오 예상 요금 · 약 ${minutes}분 · %.1fkm".format(km)
                 }
                 is ApiResult.Failure, is ApiResult.NetworkError -> {
-                    binding.tvFareHint.text = "예상 요금을 계산하지 못했어요. 직접 입력해 주세요 (50만 원 이하)"
+                    binding.tvFareHint.text = "예상 요금을 계산하지 못했어요. 요금 칸을 눌러 다시 시도해 주세요"
                 }
             }
         }
@@ -236,7 +294,7 @@ class PotCreateActivity : ComponentActivity() {
     // 다음: 입력 확인 (명세서 규칙과 같게) → CR-04 방 만들기 확인으로 이동
     private fun onNext() {
         val title = binding.etTitle.text.toString().trim()
-        val fare = binding.etFare.text.toString().toIntOrNull()
+        val fare = expectedFare
         val dep = departure
         val dest = destination
         val time = departureTime
@@ -249,8 +307,9 @@ class PotCreateActivity : ComponentActivity() {
             time == null || minutesLeft == null -> "출발 시각을 선택해 주세요"
             minutesLeft < 15 -> "출발 시각은 지금부터 15분 이후여야 해요"
             minutesLeft > 24 * 60 -> "출발 시각은 24시간 이내여야 해요"
-            fare == null -> "예상 총 요금을 입력해 주세요"
-            fare > 500_000 -> "예상 총 요금은 50만 원 이하로 입력해 주세요"
+            fare == null && fareJob?.isActive == true -> "예상 요금을 계산하는 중이에요. 잠시만 기다려 주세요"
+            fare == null -> "예상 요금을 계산하지 못했어요. 요금 칸을 눌러 다시 시도해 주세요"
+            fare > 500_000 -> "예상 요금이 50만 원을 넘어서 방을 만들 수 없어요"
             else -> null
         }
         if (error != null || dep == null || dest == null || time == null || fare == null) {
@@ -258,8 +317,7 @@ class PotCreateActivity : ComponentActivity() {
             return
         }
 
-        // 서버로 보낼 요청 만들기 (오픈채팅 링크는 비어 있으면 안 보냄)
-        val openChat = binding.etOpenChat.text.toString().trim()
+        // 서버로 보낼 요청 만들기 (오픈채팅 링크는 실시간 채팅으로 대체해 입력받지 않음)
         val request = PotCreateRequest(
             title = title,
             departureName = dep.name,
@@ -272,7 +330,7 @@ class PotCreateActivity : ComponentActivity() {
             maxMembers = maxMembers,
             genderOption = genderOption,
             expectedFare = fare,
-            openChatUrl = openChat.ifEmpty { null },
+            openChatUrl = null,
             preferredSeat = preferredSeat
         )
 

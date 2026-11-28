@@ -15,4 +15,8 @@
     <color name="taxipot_muted">#D8C6B3</color>
     <!-- 에러 (Figma에 없어 임시 지정) -->
     <color name="taxipot_error">#C0392B</color>
+    <!-- 완료·성공 표시 (Figma에 없어 추가, 베이지 톤에 어울리는 차분한 초록) -->
+    <color name="taxipot_success">#5E9E6E</color>
+    <!-- 안 읽은 알림 점 -->
+    <color name="taxipot_badge">#3B8DED</color>
 </resources>

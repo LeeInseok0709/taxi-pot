@@ -1,18 +1,18 @@
 package com.taxipot.domain.notification.push;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.stereotype.Component;
 
-/** FCM 연동 전 기본 구현: 로그만 남긴다. FCM 을 붙이면 PushSender 를 구현한 @Component 를 추가하면 이 빈은 빠진다 */
+/**
+ * 로컬 개발용 기본 구현: 실제 발송 없이 로그만 남긴다 (app.push.enabled=false).
+ * 빈 등록은 {@link PushSenderConfig}가 한다 — 여기에 @Component 를 붙이지 않는다.
+ */
 @Slf4j
-@Component
-@ConditionalOnMissingBean(value = PushSender.class, ignored = LogPushSender.class)
 public class LogPushSender implements PushSender {
 
     @Override
-    public void send(String fcmToken, String title, String content, Long potId) {
-        log.info("[PUSH] token={}… title={} content={} potId={}",
-                fcmToken.substring(0, Math.min(8, fcmToken.length())), title, content, potId);
+    public void send(String fcmToken, PushMessage message) {
+        log.info("[PUSH-로그] token={}… title={} content={} data={}",
+                fcmToken == null ? "null" : fcmToken.substring(0, Math.min(8, fcmToken.length())),
+                message.title(), message.content(), message.data());
     }
 }

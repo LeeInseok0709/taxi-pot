@@ -24,6 +24,7 @@ import com.example.taxipot.feature.pot.main.PotMainActivity
 import com.example.taxipot.feature.pot.main.roundedBg
 import com.example.taxipot.feature.pot.room.WaitingRoomActivity
 import com.example.taxipot.feature.pot.room.showActivePotDialog
+import com.example.taxipot.feature.wallet.WalletBalance
 import kotlinx.coroutines.launch
 
 /**
@@ -113,7 +114,7 @@ class PotCreateConfirmActivity : ComponentActivity() {
 
         // 예치액과 현재 잔액 (잔액은 지갑 API 연결 전까지 가짜 값)
         val hold = PotRepository.holdAmount(request.expectedFare, request.maxMembers)
-        val balance = FakePotData.FAKE_BALANCE
+        val balance = WalletBalance.latest ?: 0
         binding.tvHoldValue.text = "%,dP".format(hold)
         binding.tvBalanceValue.text = "%,dP".format(balance)
 

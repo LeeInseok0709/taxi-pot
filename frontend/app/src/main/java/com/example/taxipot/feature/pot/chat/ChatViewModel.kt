@@ -29,7 +29,9 @@ data class ChatUiState(
     /** 한 번 보여주고 지울 문장 */
     val message: String? = null,
     /** 이 숫자가 바뀔 때마다 맨 아래로 스크롤 */
-    val scrollToBottom: Int = 0
+    val scrollToBottom: Int = 0,
+    /** 전송 실패한 일반 메시지 (입력칸에 되돌림) */
+    val failedText: String? = null
 )
 
 /** RD-02 채팅 */
@@ -123,7 +125,12 @@ class ChatViewModel : ViewModel() {
         viewModelScope.launch {
             when (val result = ChatRepository.send(potId, msgType, content)) {
                 is ApiResult.Success -> merge(listOf(result.data), scroll = true)
-                is ApiResult.Failure, is ApiResult.NetworkError -> showMessage(ChatRepository.errorMessage(result))
+                is ApiResult.Failure, is ApiResult.NetworkError -> _uiState.update {
+                    it.copy(
+                        message = "전송하지 못했어요. 다시 눌러 주세요",
+                        failedText = if (msgType == "TEXT") content else null
+                    )
+                }
             }
             _uiState.update { it.copy(sending = false) }
         }
@@ -170,6 +177,9 @@ class ChatViewModel : ViewModel() {
     }
 
     private fun showMessage(text: String) = _uiState.update { it.copy(message = text) }
+
+    /** 되돌린 뒤 지우기 */
+    fun failedTextShown() = _uiState.update { it.copy(failedText = null) }
 
     /** 문장을 보여준 뒤 지우기 */
     fun messageShown() = _uiState.update { it.copy(message = null) }

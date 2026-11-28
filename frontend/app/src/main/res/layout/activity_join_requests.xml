@@ -3,7 +3,7 @@
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FBF7F0"
+    android:background="@color/taxipot_surface"
     android:orientation="vertical">
 
     <!-- 상단 바: 뒤로 가기 + 입장 요청 -->
@@ -21,14 +21,14 @@
             android:layout_height="40dp"
             android:padding="8dp"
             android:src="@drawable/ic_back"
-            android:tint="#2B2B2B" />
+            android:tint="@color/taxipot_text" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:text="입장 요청"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="18sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -52,7 +52,7 @@
                 android:id="@+id/tvSubtitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="#6B6B6B"
+                android:textColor="@color/taxipot_sub_text"
                 android:textSize="13sp" />
 
             <!-- 요청이 없을 때 -->
@@ -63,7 +63,7 @@
                 android:layout_marginTop="12dp"
                 android:gravity="center"
                 android:text="아직 입장 요청이 없어요"
-                android:textColor="#9A9A9A"
+                android:textColor="@color/taxipot_sub_text"
                 android:textSize="14sp"
                 android:visibility="gone" />
 
@@ -87,7 +87,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="ⓘ 입장 요청이란?"
-                    android:textColor="#2B2B2B"
+                    android:textColor="@color/taxipot_text"
                     android:textSize="13sp"
                     android:textStyle="bold" />
 
@@ -97,7 +97,7 @@
                     android:layout_marginTop="6dp"
                     android:lineSpacingExtra="3dp"
                     android:text="참여 마감(출발 5분 전) 뒤에 출발지 50m 안에서 보낸 요청이에요.\n수락하면 요청자의 예치금이 빠지고 바로 도착 처리돼요.\n거절하면 그 사람은 이 방에 다시 요청할 수 없어요."
-                    android:textColor="#6B6B6B"
+                    android:textColor="@color/taxipot_sub_text"
                     android:textSize="12sp" />
             </LinearLayout>
         </LinearLayout>

@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ST-02 동승자 평가 (탭·별은 코드에서 만듦) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/taxipot_surface"
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/appBar"
+        layout="@layout/view_taxipot_app_bar" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="20dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="20dp"
+                android:paddingBottom="24dp">
+
+                <TextView
+                    android:id="@+id/tvError"
+                    style="@style/TaxiPot.ErrorText"
+                    android:layout_marginTop="0dp"
+                    android:layout_marginBottom="8dp"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tvEmpty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:paddingTop="40dp"
+                    android:text="평가할 동승자가 없어요."
+                    android:textColor="@color/taxipot_sub_text"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
+
+                <!-- 동승자 탭 -->
+                <LinearLayout
+                    android:id="@+id/tabs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal" />
+
+                <LinearLayout
+                    android:id="@+id/content"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        style="@style/TaxiPot.Title"
+                        android:layout_marginTop="20dp"
+                        android:text="이번 동승은 어땠나요?" />
+
+                    <!-- 항목 4줄 × 별 5개 -->
+                    <LinearLayout
+                        android:id="@+id/starRows"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:background="@drawable/bg_taxipot_box"
+                        android:orientation="vertical"
+                        android:padding="18dp" />
+
+                    <!-- 3점 미만 사유 -->
+                    <LinearLayout
+                        android:id="@+id/reasonGroup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <TextView
+                            style="@style/TaxiPot.Label"
+                            android:layout_marginTop="20dp"
+                            android:text="3점 미만 사유 입력 (필수)" />
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilReason"
+                            style="@style/TaxiPot.Field">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etReason"
+                                style="@style/TaxiPot.FieldEdit"
+                                android:hint="평가 사유를 입력해주세요"
+                                android:inputType="text"
+                                android:maxLength="255" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+
+                    <!-- 안내 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:background="@drawable/bg_taxipot_box"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="14dp">
+
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/ic_info_outline"
+                            app:tint="@color/taxipot_text" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="정산 후 24시간 내 미제출 시 각 항목 3점으로 자동 처리됩니다."
+                            android:textColor="@color/taxipot_sub_text"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:indeterminate="true"
+            android:visibility="gone"
+            app:indicatorColor="@color/taxipot_text"
+            app:indicatorSize="32dp"
+            app:trackThickness="3dp" />
+    </FrameLayout>
+
+    <!-- 버튼 (화면 아래 고정) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="16dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnReport"
+            style="@style/TaxiPot.OutlineButton"
+            android:layout_height="52dp"
+            android:layout_marginBottom="10dp"
+            android:text="이 동승자 신고하기"
+            android:textSize="15sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSubmit"
+            style="@style/TaxiPot.PrimaryButton"
+            android:text="평가 제출" />
+    </LinearLayout>
+</LinearLayout>

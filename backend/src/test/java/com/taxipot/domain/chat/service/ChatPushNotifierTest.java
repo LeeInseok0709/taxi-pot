@@ -1,5 +1,6 @@
 package com.taxipot.domain.chat.service;
 
+import com.taxipot.domain.notification.push.PushMessage;
 import com.taxipot.domain.notification.push.PushSender;
 import com.taxipot.domain.user.entity.User;
 import com.taxipot.domain.user.repository.UserRepository;
@@ -16,7 +17,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -31,6 +31,7 @@ class ChatPushNotifierTest {
 
     private static final Long POT_ID = 3L;
     private static final String POT_TITLE = "정문 → 터미널";
+    private static final PushMessage CHAT_PUSH = PushMessage.chat(POT_ID, POT_TITLE, "새 메시지가 있어요");
 
     @Mock UserRepository userRepository;
     @Mock PushSender pushSender;
@@ -50,8 +51,8 @@ class ChatPushNotifierTest {
 
         notifier.notifyNewMessage(List.of(8L, 9L, 10L), POT_ID, POT_TITLE);
 
-        verify(pushSender).send("token-a", POT_TITLE, "새 메시지가 있어요", POT_ID);
-        verify(pushSender, org.mockito.Mockito.times(1)).send(anyString(), anyString(), anyString(), anyLong());
+        verify(pushSender).send("token-a", CHAT_PUSH);
+        verify(pushSender, org.mockito.Mockito.times(1)).send(anyString(), any(PushMessage.class));
     }
 
     @Test
@@ -60,7 +61,7 @@ class ChatPushNotifierTest {
         notifier.notifyNewMessage(List.of(), POT_ID, POT_TITLE);
 
         verify(userRepository, never()).findAllById(any());
-        verify(pushSender, never()).send(anyString(), anyString(), anyString(), anyLong());
+        verify(pushSender, never()).send(anyString(), any(PushMessage.class));
     }
 
     @Test
@@ -68,11 +69,11 @@ class ChatPushNotifierTest {
     void failureDoesNotPropagate() {
         List<User> found = List.of(user("token-a"), user("token-b"));
         when(userRepository.findAllById(List.of(8L, 9L))).thenReturn(found);
-        doThrow(new IllegalStateException("FCM 오류")).when(pushSender).send("token-a", POT_TITLE, "새 메시지가 있어요", POT_ID);
+        doThrow(new IllegalStateException("FCM 오류")).when(pushSender).send("token-a", CHAT_PUSH);
 
         assertThatCode(() -> notifier.notifyNewMessage(List.of(8L, 9L), POT_ID, POT_TITLE)).doesNotThrowAnyException();
 
-        verify(pushSender).send("token-b", POT_TITLE, "새 메시지가 있어요", POT_ID);
+        verify(pushSender).send("token-b", CHAT_PUSH);
     }
 
     private static User user(String fcmToken) {

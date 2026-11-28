@@ -28,6 +28,7 @@ public record AppProperties(
         @DefaultValue Member member,
         @DefaultValue Scheduler scheduler,
         @DefaultValue Mail mail,
+        @DefaultValue Push push,
         @DefaultValue Admin admin
 ) {
 
@@ -156,6 +157,16 @@ public record AppProperties(
             /** false 면 인증코드를 메일 대신 서버 로그로 출력 (로컬 개발용) */
             @DefaultValue("false") boolean enabled,
             @DefaultValue("noreply@taxipot.local") String from
+    ) {
+    }
+
+    /**
+     * FCM 푸시. false 면 푸시 대신 서버 로그만 남긴다 (로컬 개발용).
+     * true 면 credentialsPath 의 Firebase 서비스 계정 키(JSON)로 실제 발송한다. 키 파일은 커밋 금지.
+     */
+    public record Push(
+            @DefaultValue("false") boolean enabled,
+            String credentialsPath
     ) {
     }
 

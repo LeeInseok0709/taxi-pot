@@ -3,7 +3,7 @@
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FBF7F0"
+    android:background="@color/taxipot_surface"
     android:orientation="vertical">
 
     <LinearLayout
@@ -19,14 +19,14 @@
             android:layout_height="40dp"
             android:padding="8dp"
             android:src="@drawable/ic_back"
-            android:tint="#2B2B2B" />
+            android:tint="@color/taxipot_text" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:text="실요금 청구"
-            android:textColor="#2B2B2B"
+            android:textColor="@color/taxipot_text"
             android:textSize="18sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -46,7 +46,7 @@
                 android:id="@+id/tvRoute"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="#6B6B6B"
+                android:textColor="@color/taxipot_sub_text"
                 android:textSize="13sp" />
 
             <TextView
@@ -54,7 +54,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="결제내역 사진"
-                android:textColor="#2B2B2B"
+                android:textColor="@color/taxipot_text"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -70,7 +70,7 @@
                     android:layout_height="match_parent"
                     android:gravity="center"
                     android:text="눌러서 사진 고르기\n(카카오 T·우버 결제 화면 캡처나 영수증)"
-                    android:textColor="#9A9A9A"
+                    android:textColor="@color/taxipot_sub_text"
                     android:textSize="13sp" />
 
                 <ImageView
@@ -86,7 +86,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="실제 요금 (원)"
-                android:textColor="#2B2B2B"
+                android:textColor="@color/taxipot_text"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -100,7 +100,7 @@
                 android:maxLength="6"
                 android:paddingStart="14dp"
                 android:paddingEnd="14dp"
-                android:textColor="#2B2B2B"
+                android:textColor="@color/taxipot_text"
                 android:textSize="15sp" />
 
             <TextView
@@ -111,7 +111,7 @@
                 android:lineSpacingExtra="3dp"
                 android:padding="14dp"
                 android:text="ⓘ 운영자가 사진과 금액을 확인하면 정산돼요.\n탑승자는 실요금 ÷ 인원 + 수수료 1,000원을 내고, 예치금의 남는 돈은 돌려받아요."
-                android:textColor="#6B6B6B"
+                android:textColor="@color/taxipot_sub_text"
                 android:textSize="12sp" />
         </LinearLayout>
     </ScrollView>
@@ -123,7 +123,7 @@
         android:layout_margin="20dp"
         android:gravity="center"
         android:text="청구하기"
-        android:textColor="#2B2B2B"
+        android:textColor="@color/taxipot_text"
         android:textSize="15sp"
         android:textStyle="bold" />
 </LinearLayout>

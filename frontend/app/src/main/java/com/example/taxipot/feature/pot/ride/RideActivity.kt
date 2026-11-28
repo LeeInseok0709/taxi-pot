@@ -1,6 +1,8 @@
 package com.example.taxipot.feature.pot.ride
 
 import android.content.ActivityNotFoundException
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -29,6 +31,7 @@ import com.example.taxipot.feature.pot.main.PotMainActivity
 import com.example.taxipot.feature.pot.main.bubbleBitmap
 import com.example.taxipot.feature.pot.main.dp
 import com.example.taxipot.feature.pot.main.roundedBg
+import com.example.taxipot.feature.settlement.SettlementActivity
 import com.kakao.vectormap.KakaoMap
 import com.kakao.vectormap.KakaoMapReadyCallback
 import com.kakao.vectormap.KakaoMapSdk
@@ -124,9 +127,14 @@ class RideActivity : ComponentActivity() {
 
     // 방 정보로 화면 채우기
     private fun render(pot: PotDetailResponse, myUserId: Long?) {
-        // 정산이 끝났거나 방이 취소됐으면 안내하고 홈으로
-        if (pot.status == "COMPLETED" || pot.status == "CANCELED") {
-            showToast(if (pot.status == "COMPLETED") "정산이 끝났어요. 이용해 주셔서 고마워요!" else "방이 취소됐어요")
+        // 정산이 끝났으면 정산 내역(ST-01)으로, 방이 취소됐으면 홈으로
+        if (pot.status == "COMPLETED") {
+            startActivity(SettlementActivity.newIntent(this, pot.id))
+            finish()
+            return
+        }
+        if (pot.status == "CANCELED") {
+            showToast("방이 취소됐어요")
             goHome()
             return
         }
@@ -203,19 +211,23 @@ class RideActivity : ComponentActivity() {
         }
     }
 
-    // 카카오 T: 출발지·도착지 좌표를 담아 택시 호출 화면 열기, 앱이 없으면 스토어
+    // 카카오 T: 목적지 주소 복사 → 앱 열기, 앱이 없으면 스토어
     private fun openKakaoT(pot: PotDetailResponse) {
-        val uri = Uri.parse(
-            "https://t.kakao.com/launch?type=taxi" +
-                    "&origin_lat=${pot.departureLat}&origin_lng=${pot.departureLng}" +
-                    "&dest_lat=${pot.destinationLat}&dest_lng=${pot.destinationLng}"
-        )
-        // 카카오 T 앱으로만 열기 (앱이 없으면 브라우저 대신 예외가 나서 아래로 넘어감)
-        if (tryOpen(Intent(Intent.ACTION_VIEW, uri).setPackage(KAKAO_T_PACKAGE))) return
-        // 앱은 있는데 위 링크를 못 받는 버전이면 앱만 열기
-        if (tryOpen(Intent(Intent.ACTION_VIEW, Uri.parse("kakaot://")))) return
-        showToast("카카오 T 앱이 없어서 설치 화면으로 이동해요")
-        openStore(KAKAO_T_PACKAGE)
+        val address = viewModel.uiState.value.destinationAddress ?: pot.destinationName
+        copyToClipboard("목적지 주소", address)
+
+        val launch = packageManager.getLaunchIntentForPackage(KAKAO_T_PACKAGE)
+        if (launch != null && tryOpen(launch)) {
+            showToast("목적지 주소를 복사했어요. 카카오 T 검색창에 붙여넣어 주세요")
+        } else {
+            showToast("카카오 T가 없어서 설치 화면으로 이동해요 (주소는 복사해 뒀어요)")
+            openStore(KAKAO_T_PACKAGE)
+        }
+    }
+
+    private fun copyToClipboard(label: String, text: String) {
+        getSystemService(ClipboardManager::class.java)
+            .setPrimaryClip(ClipData.newPlainText(label, text))
     }
 
     // 우버: 우버 공식 링크 (앱이 있으면 앱, 없으면 웹에서 출발·도착이 채워진 채로 열림)

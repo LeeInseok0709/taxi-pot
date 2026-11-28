@@ -71,3 +71,27 @@ src/main/resources/
 ## 검증 상태
 
 이 틀은 Spring Boot 3.5.15·Hibernate 6.6 라이브러리로 전체 컴파일했고, MySQL 8.0.46에 `db/schema.sql`을 적용한 뒤 `ddl-auto: validate`로 서버가 정상 기동하는 것(14개 테이블 매핑 일치)을 확인했습니다. 스모크 테스트 41개, 미수금 이용 제한·토큰 무효화·암호화 저장 확인, `ErrorCodeSpecTest`(명세 에러 코드 77개와 이름·HTTP 상태 일치)도 통과했습니다. 단, 작성 환경 사정으로 JDBC 드라이버는 MySQL Connector/J 대신 MariaDB 드라이버로 시험했고 Gradle 빌드 자체는 돌려 보지 못했습니다. 처음 `./gradlew build`나 IntelliJ 실행에서 오류가 나면 로그 전체를 공유해 주세요. STOMP(웹소켓)는 컴파일과 기동까지만 확인했고 실제 앱 연결은 시험하지 않았습니다.
+
+## FCM 푸시 켜기 (시연·실제 발송)
+
+기본값은 푸시를 보내지 않고 서버 로그에 `[PUSH-로그]`만 찍습니다. 실제로 휴대폰에 푸시를 보내려면:
+
+1. Firebase 콘솔 → 프로젝트 설정 → 서비스 계정 → **새 비공개 키 생성**으로 JSON 키를 받습니다. (앱의 `google-services.json`과는 다른 파일입니다)
+2. 키 파일을 레포 **밖**이나 `backend/secrets/`에 둡니다. `secrets/`와 `*firebase-adminsdk*.json`은 `.gitignore`에 있어 커밋되지 않습니다.
+3. 환경변수 두 개를 넣고 서버를 실행합니다.
+   ```bash
+   TAXIPOT_PUSH_ENABLED=true
+   TAXIPOT_FCM_CREDENTIALS=C:/taxipot-secrets/taxipot-firebase-adminsdk.json
+   ```
+   IntelliJ는 Run/Debug Configurations → Environment variables에 넣으면 됩니다. 로그에 `푸시: FCM 발송 모드`가 나오면 성공입니다.
+4. 켰는데 키 경로가 비었거나 파일이 없으면 서버가 시작되지 않습니다(시연 중에 푸시가 조용히 안 나가는 것을 막기 위함).
+
+푸시 data 규격(값은 모두 문자열, 값이 없는 키는 빠짐):
+
+| 키 | 내용 |
+|---|---|
+| `type` | 알림 유형(`POT`·`PAYMENT`·`LATE_WARNING`·`KICKED`·`RATING_REQUEST`·`REPORT_RESULT`·`SYSTEM`), 채팅 새 메시지는 `CHAT`. 항상 있음 |
+| `potId` | 방과 관련된 알림일 때만 |
+| `notificationId` | 알림 목록에 저장된 알림일 때만 (채팅 푸시에는 없음). 눌렀을 때 읽음 처리에 사용 |
+
+앱은 푸시를 눌렀을 때 알림 화면과 같은 규칙(`type`·`potId`)으로 화면을 이동합니다.

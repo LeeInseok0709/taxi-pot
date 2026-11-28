@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 공통 상단 바: 뒤로 가기 + 제목 (제목은 코드에서 tvAppBarTitle.text로 지정) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="56dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="8dp"
+    android:paddingEnd="20dp">
+
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="뒤로 가기"
+        android:src="@drawable/ic_back"
+        app:tint="@color/taxipot_text" />
+
+    <TextView
+        android:id="@+id/tvAppBarTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:textColor="@color/taxipot_text"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+</LinearLayout>

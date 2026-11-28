@@ -1,0 +1,459 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AU-01 회원가입 (Figma: 01 회원가입 · 학생 인증 / ANDROID) -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/taxipot_surface"
+    android:orientation="vertical">
+
+    <!-- 상단 바 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingEnd="20dp">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="뒤로 가기"
+            android:src="@drawable/ic_back"
+            app:tint="@color/taxipot_text" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:text="회원가입"
+            android:textColor="@color/taxipot_text"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="20dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="24dp">
+
+            <!-- 머리말 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="택시팟 · 백석대학교"
+                android:textColor="@color/taxipot_text"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="함께 가는 캠퍼스의 시작"
+                android:textColor="@color/taxipot_text"
+                android:textSize="23sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="계정을 만들고 학생 인증을 진행해주세요."
+                android:textColor="@color/taxipot_sub_text"
+                android:textSize="14sp" />
+
+            <!-- 학교 이메일 -->
+            <TextView
+                style="@style/TaxiPot.Label"
+                android:layout_marginTop="24dp"
+                android:text="학교 이메일" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilEmail"
+                style="@style/TaxiPot.Field">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etEmail"
+                    style="@style/TaxiPot.FieldEdit"
+                    android:hint="학교 메일 주소 입력"
+                    android:imeOptions="actionNext"
+                    android:inputType="textEmailAddress" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 비밀번호 -->
+            <TextView
+                style="@style/TaxiPot.Label"
+                android:text="비밀번호" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilPassword"
+                style="@style/TaxiPot.Field"
+                app:endIconMode="password_toggle">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPassword"
+                    style="@style/TaxiPot.FieldEdit"
+                    android:hint="비밀번호 입력 (8자 이상)"
+                    android:imeOptions="actionNext"
+                    android:inputType="textPassword" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 비밀번호 확인 -->
+            <TextView
+                style="@style/TaxiPot.Label"
+                android:text="비밀번호 확인" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilPasswordConfirm"
+                style="@style/TaxiPot.Field"
+                app:endIconMode="password_toggle">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPasswordConfirm"
+                    style="@style/TaxiPot.FieldEdit"
+                    android:hint="비밀번호 다시 입력"
+                    android:imeOptions="actionNext"
+                    android:inputType="textPassword" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 이름 -->
+            <TextView
+                style="@style/TaxiPot.Label"
+                android:text="이름" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilName"
+                style="@style/TaxiPot.Field">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etName"
+                    style="@style/TaxiPot.FieldEdit"
+                    android:hint="이름 입력"
+                    android:imeOptions="actionNext"
+                    android:inputType="textPersonName"
+                    android:maxLength="50" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 닉네임 + 중복확인 (상자 안 오른쪽) -->
+            <TextView
+                style="@style/TaxiPot.Label"
+                android:text="닉네임" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilNickname"
+                    style="@style/TaxiPot.Field">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etNickname"
+                        style="@style/TaxiPot.FieldEdit"
+                        android:hint="닉네임 입력"
+                        android:imeOptions="actionNext"
+                        android:inputType="text"
+                        android:maxLength="30"
+                        android:paddingEnd="88dp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:id="@+id/tvNicknameCheck"
+                    android:layout_width="wrap_content"
+                    android:layout_height="52dp"
+                    android:layout_gravity="top|end"
+                    android:layout_marginTop="7dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:gravity="center"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:text="중복확인"
+                    android:textColor="@color/taxipot_text"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
+
+            <!-- 성별 -->
+            <TextView
+                style="@style/TaxiPot.Label"
+                android:text="성별" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="7dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/optFemale"
+                    style="@style/TaxiPot.Option"
+                    android:text="여자" />
+
+                <Space
+                    android:layout_width="8dp"
+                    android:layout_height="0dp" />
+
+                <TextView
+                    android:id="@+id/optMale"
+                    style="@style/TaxiPot.Option"
+                    android:text="남자" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvGenderError"
+                style="@style/TaxiPot.ErrorText" />
+
+            <!-- 휴대폰 번호 -->
+            <TextView
+                style="@style/TaxiPot.Label"
+                android:text="휴대폰 번호" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilPhone"
+                style="@style/TaxiPot.Field">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPhone"
+                    style="@style/TaxiPot.FieldEdit"
+                    android:digits="0123456789-"
+                    android:hint="010-0000-0000"
+                    android:imeOptions="actionDone"
+                    android:inputType="phone"
+                    android:maxLength="13" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 대학교 (목록에서 선택) -->
+            <TextView
+                style="@style/TaxiPot.Label"
+                android:text="대학교" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilUniversity"
+                style="@style/TaxiPot.Field"
+                app:endIconDrawable="@drawable/ic_arrow_drop_down"
+                app:endIconMode="custom"
+                app:helperText="가입 가능한 대학교 목록에서 선택해주세요.">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etUniversity"
+                    style="@style/TaxiPot.FieldEdit.Select"
+                    android:hint="대학교 선택" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 학번 -->
+            <TextView
+                style="@style/TaxiPot.Label"
+                android:text="학번" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilStudentNo"
+                style="@style/TaxiPot.Field">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etStudentNo"
+                    style="@style/TaxiPot.FieldEdit"
+                    android:hint="학번 입력"
+                    android:imeOptions="actionDone"
+                    android:inputType="text"
+                    android:maxLength="20" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 구분선 -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="28dp"
+                android:background="@color/taxipot_line" />
+
+            <!-- 출금 계좌 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="출금 계좌"
+                android:textColor="@color/taxipot_text"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_taxipot_box"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="14dp">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/ic_info_outline"
+                    app:tint="@color/taxipot_text" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="본인 명의의 계좌를 입력해주세요."
+                    android:textColor="@color/taxipot_sub_text"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- 은행 + 계좌번호 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/TaxiPot.Label"
+                        android:text="은행" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilBank"
+                        style="@style/TaxiPot.Field"
+                        app:endIconDrawable="@drawable/ic_arrow_drop_down"
+                        app:endIconMode="custom">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etBank"
+                            style="@style/TaxiPot.FieldEdit.Select"
+                            android:hint="은행 선택" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <Space
+                    android:layout_width="8dp"
+                    android:layout_height="0dp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@style/TaxiPot.Label"
+                        android:text="계좌번호" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilAccountNumber"
+                        style="@style/TaxiPot.Field">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etAccountNumber"
+                            style="@style/TaxiPot.FieldEdit"
+                            android:digits="0123456789-"
+                            android:hint="계좌번호 입력"
+                            android:imeOptions="actionDone"
+                            android:inputType="number"
+                            android:maxLength="20" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 예금주 (이름과 같아야 해서 이름을 그대로 따라 씀) -->
+            <TextView
+                style="@style/TaxiPot.Label"
+                android:text="예금주" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilAccountHolder"
+                style="@style/TaxiPot.Field"
+                app:helperText="이름과 같은 명의의 계좌만 등록할 수 있어요.">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etAccountHolder"
+                    style="@style/TaxiPot.FieldEdit.Select"
+                    android:hint="이름과 동일" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 약관 동의 -->
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:id="@+id/cbRequired"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="[필수] 이용약관 · 개인정보 동의"
+                android:textColor="@color/taxipot_text"
+                android:textSize="13sp"
+                app:buttonTint="@color/taxipot_text" />
+
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:id="@+id/cbMarketing"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="[선택] 마케팅 수신 동의"
+                android:textColor="@color/taxipot_text"
+                android:textSize="13sp"
+                app:buttonTint="@color/taxipot_text" />
+
+            <TextView
+                android:id="@+id/tvAgreeError"
+                style="@style/TaxiPot.ErrorText" />
+
+            <!-- 가입 실패·연결 실패 안내 -->
+            <TextView
+                android:id="@+id/tvError"
+                style="@style/TaxiPot.ErrorText"
+                android:layout_marginTop="12dp"
+                android:textSize="13sp" />
+
+            <!-- 가입 버튼 + 로딩 -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSignup"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="가입하고 인증메일 받기"
+                    android:textColor="@color/taxipot_text"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="@color/taxipot_primary"
+                    app:cornerRadius="12dp" />
+
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/progress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:elevation="8dp"
+                    android:indeterminate="true"
+                    android:visibility="gone"
+                    app:indicatorColor="@color/taxipot_text"
+                    app:indicatorSize="24dp"
+                    app:trackThickness="3dp" />
+            </FrameLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
